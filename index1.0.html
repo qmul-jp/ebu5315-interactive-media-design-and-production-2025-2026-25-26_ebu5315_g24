@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Circle Theorems 圆定理学习</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f5f7fa;
+            color: #333;
+        }
+
+        /* 导航栏 */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+            background: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .logo {
+            font-size: 22px;
+            font-weight: bold;
+            color: #2563eb;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .tools {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 6px 12px;
+            border: 1px solid #2563eb;
+            background: white;
+            color: #2563eb;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        /* 首屏 */
+        .hero {
+            text-align: center;
+            padding: 60px 20px;
+            background: white;
+            margin: 20px;
+            border-radius: 10px;
+        }
+
+        .hero h1 {
+            font-size: 32px;
+            margin-bottom: 15px;
+        }
+
+        .circle-img {
+            width: 200px;
+            margin: 20px auto;
+            animation: rotate 10s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .start-btn {
+            padding: 12px 25px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        /* 核心定理卡片 */
+        .theorems {
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        .theorems h2 {
+            margin-bottom: 30px;
+            font-size: 24px;
+        }
+
+        .card-box {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .card {
+            width: 280px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        /* USP */
+        .usp {
+            background: white;
+            padding: 40px 20px;
+            text-align: center;
+            margin: 20px;
+            border-radius: 10px;
+        }
+
+        .usp h2 {
+            margin-bottom: 15px;
+        }
+
+        .usp-points {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        /* 挑战模块 */
+        .challenge {
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        /* AI 机器人 */
+        .ai-chat {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background: #2563eb;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+        }
+
+        /* 广告区（课程要求） */
+        .ad-banner {
+            background: #fff3cd;
+            text-align: center;
+            padding: 10px;
+            margin: 20px;
+            border-radius: 8px;
+            border: 1px solid #ffc107;
+        }
+
+        /* 联系表单 */
+        .contact {
+            background: white;
+            padding: 30px;
+            margin: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .contact input, .contact textarea {
+            width: 100%;
+            max-width: 500px;
+            padding: 10px;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+        }
+
+        /* 页脚 */
+        footer {
+            text-align: center;
+            padding: 20px;
+            background: white;
+            margin-top: 30px;
+            border-top: 1px solid #eee;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 导航栏 -->
+    <div class="navbar">
+        <div class="logo">Circle Theorems</div>
+        <div class="nav-links">
+            <a href="#">首页</a>
+            <a href="#">学习</a>
+            <a href="#">测验</a>
+            <a href="#">游戏</a>
+        </div>
+        <div class="tools">
+            <button class="btn">中文/EN</button>
+            <button class="btn">A+</button>
+        </div>
+    </div>
+
+    <!-- 广告横幅（课程要求：盈利方式） -->
+    <div class="ad-banner">
+        教育支持 · 帮助我们维持网站运行 | 公益学习平台
+    </div>
+
+    <!-- 首屏 -->
+    <div class="hero">
+        <h1>轻松掌握圆定理 · 几何学习更简单</h1>
+        <p>互动式学习 + 动态演示 + AI 随时解答</p>
+        <img class="circle-img" src="https://picsum.photos/id/1000/200/200" alt="圆">
+        <br>
+        <button class="start-btn">开始学习</button>
+    </div>
+
+    <!-- 核心定理卡片 -->
+    <div class="theorems">
+        <h2>核心定理速查</h2>
+        <div class="card-box">
+            <div class="card">圆心角定理</div>
+            <div class="card">圆周角定理</div>
+            <div class="card">切线性质</div>
+            <div class="card">内接四边形</div>
+        </div>
+    </div>
+
+    <!-- USP 卖点 -->
+    <div class="usp">
+        <h2>我们的优势</h2>
+        <div class="usp-points">
+            <div>✅ 完全互动</div>
+            <div>✅ 动态可视化</div>
+            <div>✅ 100% 免费</div>
+        </div>
+    </div>
+
+    <!-- 挑战模块 -->
+    <div class="challenge">
+        <h2>准备好接受挑战了吗？</h2>
+        <br>
+        <button class="start-btn">进入测验</button>
+    </div>
+
+    <!-- 联系表单（课程要求） -->
+    <div class="contact">
+        <h2>联系我们</h2>
+        <br>
+        <input type="text" placeholder="你的名字">
+        <input type="email" placeholder="邮箱">
+        <textarea rows="4" placeholder="留言内容"></textarea>
+        <br>
+        <button class="start-btn">提交</button>
+    </div>
+
+    <!-- AI 机器人（课程要求） -->
+    <div class="ai-chat">AI</div>
+
+    <!-- 页脚 -->
+    <footer>
+        © 2026 Circle Theorems | EBU5315 课程作业
+    </footer>
+
+</body>
+</html>
