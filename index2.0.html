@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Circle Theorems - V2</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        body {
+            background: #f5f7fa;
+            color: #333;
+            transition: background 0.3s;
+        }
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+            background: #fff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .logo {
+            font-size: 22px;
+            font-weight: bold;
+            color: #2563eb;
+            cursor: pointer;
+        }
+        .nav-links a {
+            margin: 0 12px;
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        .tools button {
+            margin-left: 8px;
+            padding: 6px 10px;
+            border: 1px solid #2563eb;
+            background: #fff;
+            color: #2563eb;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .ad-banner {
+            background: #fff3cd;
+            text-align: center;
+            padding: 10px;
+            margin: 20px;
+            border-radius: 8px;
+            border: 1px solid #ffc107;
+        }
+        .hero {
+            text-align: center;
+            padding: 60px 20px;
+            background: #fff;
+            margin: 20px;
+            border-radius: 10px;
+        }
+        .hero h1 {
+            font-size: 32px;
+            margin-bottom: 15px;
+        }
+        .circle-img {
+            width: 200px;
+            margin: 20px auto;
+            animation: rotate 12s linear infinite;
+        }
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .start-btn {
+            padding: 12px 25px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .start-btn:hover {
+            background: #1d4ed8;
+        }
+        .theorems {
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .card-box {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        .card {
+            width: 280px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            cursor: pointer;
+        }
+        .usp {
+            background: white;
+            padding: 40px 20px;
+            text-align: center;
+            margin: 20px;
+            border-radius: 10px;
+        }
+        .challenge {
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .contact {
+            background: white;
+            padding: 30px;
+            margin: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .contact input, .contact textarea {
+            width: 100%;
+            max-width: 500px;
+            padding: 10px;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+        }
+        .ai-chat {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background: #2563eb;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+        }
+        .ai-window {
+            display: none;
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            width: 300px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+            padding: 15px;
+        }
+        .ai-header {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .ai-content {
+            height: 200px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            padding: 8px;
+            background: #f5f7fa;
+            border-radius: 6px;
+        }
+        footer {
+            text-align: center;
+            padding: 20px;
+            background: white;
+            margin-top: 30px;
+            border-top: 1px solid #eee;
+        }
+    </style>
+</head>
+<body>
+
+<!-- 导航 -->
+<div class="navbar">
+    <div class="logo" onclick="goHome()">Circle Theorems</div>
+    <div class="nav-links">
+        <a onclick="toHome()">首页</a>
+        <a onclick="toStudy()">学习</a>
+        <a onclick="toQuiz()">测验</a>
+        <a onclick="toGame()">游戏</a>
+    </div>
+    <div class="tools">
+        <button id="langBtn">中文/EN</button>
+        <button id="fontBtn">A+</button>
+    </div>
+</div>
+
+<!-- 广告（课程要求盈利） -->
+<div class="ad-banner">教育公益广告 · 支持我们维持平台运行</div>
+
+<!-- 首屏 -->
+<div class="hero">
+    <h1>圆定理 · 互动几何学习</h1>
+    <p>动态可视化 | AI 答疑 | 游戏化练习</p>
+    <img class="circle-img" src="https://picsum.photos/id/1000/200/200" alt="circle">
+    <br><br>
+    <button class="start-btn" onclick="showStart()">开始学习</button>
+</div>
+
+<!-- 定理卡片 -->
+<div class="theorems">
+    <h2>核心圆定理</h2>
+    <div class="card-box">
+        <div class="card" onclick="showTheo(1)">圆心角定理</div>
+        <div class="card" onclick="showTheo(2)">圆周角定理</div>
+        <div class="card" onclick="showTheo(3)">切线性质</div>
+        <div class="card" onclick="showTheo(4)">内接四边形</div>
+    </div>
+</div>
+
+<!-- USP -->
+<div class="usp">
+    <h2>我们的优势</h2>
+    <br>
+    <p>✅ 完全互动 | ✅ 动态演示 | ✅ 100% 免费</p>
+</div>
+
+<!-- 挑战 -->
+<div class="challenge">
+    <h2>准备好挑战了吗？</h2>
+    <br>
+    <button class="start-btn" onclick="toQuiz()">进入测验</button>
+</div>
+
+<!-- 联系表单 -->
+<div class="contact">
+    <h2>联系我们</h2>
+    <br>
+    <input type="text" id="name" placeholder="姓名">
+    <input type="email" id="email" placeholder="邮箱">
+    <textarea id="msg" placeholder="留言"></textarea>
+    <br><br>
+    <button class="start-btn" onclick="submitForm()">提交</button>
+</div>
+
+<!-- AI 聊天 -->
+<div class="ai-chat" onclick="toggleAI()">AI</div>
+<div class="ai-window" id="aiWindow">
+    <div class="ai-header">AI 答疑助手</div>
+    <div class="ai-content" id="aiText">你好！我可以帮你解答圆定理问题～</div>
+    <input type="text" id="aiInput" placeholder="输入问题..." onkeydown="if(event.key=='Enter')sendAI()">
+    <button onclick="sendAI()" style="margin-top:8px">发送</button>
+</div>
+
+<!-- 页脚 -->
+<footer>© 2026 EBU5315 V2 | 静态首页</footer>
+
+<script>
+    // 导航跳转（V2必备交互）
+    function goHome(){alert("返回首页");}
+    function toHome(){alert("跳转到首页");}
+    function toStudy(){alert("跳转到学习页面");}
+    function toQuiz(){alert("跳转到测验");}
+    function toGame(){alert("跳转到游戏");}
+
+    // 开始学习
+    function showStart(){alert("开始学习圆定理基础");}
+
+    // 查看定理
+    function showTheo(n){alert("打开定理详情："+n);}
+
+    // 表单提交
+    function submitForm(){
+        let n = document.getElementById("name").value;
+        let e = document.getElementById("email").value;
+        let m = document.getElementById("msg").value;
+        if(n&&e&&m) alert("表单提交成功！");
+        else alert("请填写完整信息");
+    }
+
+    // 双语切换
+    let isZh = true;
+    document.getElementById("langBtn").onclick=function(){
+        isZh=!isZh;
+        this.textContent = isZh?"中文/EN":"EN/中文";
+        alert(isZh?"切换到中文":"Switched to English");
+    }
+
+    // 字体缩放
+    let size=100;
+    document.getElementById("fontBtn").onclick=function(){
+        size+=10;
+        document.body.style.fontSize=size+"%";
+        if(size>130)size=100;
+    }
+
+    // AI弹窗
+    function toggleAI(){
+        let w=document.getElementById("aiWindow");
+        w.style.display = w.style.display=="block"?"none":"block";
+    }
+
+    // AI聊天
+    function sendAI(){
+        let i=document.getElementById("aiInput");
+        let t=document.getElementById("aiText");
+        if(i.value){
+            t.innerHTML+="<br>你："+i.value;
+            t.innerHTML+="<br>AI：圆定理知识点会耐心为你解答！";
+            i.value="";
+        }
+    }
+</script>
+
+</body>
+</html>
