@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EBU5315 Test Page</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+    body {
+      background: #f5f7fa;
+      padding: 30px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .title {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #2563eb;
+    }
+    .test-box {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .question {
+      font-size: 18px;
+      margin-bottom: 20px;
+      font-weight: bold;
+    }
+    .option {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 8px;
+      cursor: pointer;
+      text-align: left;
+      font-size: 16px;
+    }
+    .option:hover {
+      background: #dbeafe;
+    }
+    .correct {
+      background: #10b981 !important;
+      color: white;
+      border-color: #10b981;
+    }
+    .wrong {
+      background: #ef4444 !important;
+      color: white;
+      border-color: #ef4444;
+    }
+    .feedback {
+      margin: 20px 0;
+      padding: 10px;
+      border-radius: 6px;
+      font-weight: bold;
+      display: none;
+    }
+    .next-btn {
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      display: none;
+    }
+    .result {
+      text-align: center;
+      font-size: 20px;
+      margin-top: 20px;
+      font-weight: bold;
+      color: #2563eb;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h1 class="title">EBU5315 Coursework - Test Page</h1>
+  <div class="test-box">
+    <div class="question" id="question"></div>
+    <div id="options"></div>
+    <div class="feedback" id="feedback"></div>
+    <button class="next-btn" id="nextBtn">Next Question</button>
+    <div class="result" id="result"></div>
+  </div>
+
+  <script>
+    // 测试题库
+    const questions = [
+      {
+        q: "1. The angle at the center of a circle is twice the angle at the circumference.",
+        options: ["True", "False"],
+        answer: 0
+      },
+      {
+        q: "2. Angles in the same segment are equal.",
+        options: ["True", "False"],
+        answer: 0
+      },
+      {
+        q: "3. The angle in a semicircle is 90 degrees.",
+        options: ["True", "False"],
+        answer: 0
+      },
+      {
+        q: "4. Opposite angles in a cyclic quadrilateral add up to 360°.",
+        options: ["True", "False"],
+        answer: 1
+      },
+      {
+        q: "5. A tangent to a circle is perpendicular to the radius.",
+        options: ["True", "False"],
+        answer: 0
+      }
+    ];
+
+    let current = 0;
+    let score = 0;
+
+    const qEl = document.getElementById("question");
+    const optEl = document.getElementById("options");
+    const fbEl = document.getElementById("feedback");
+    const nextBtn = document.getElementById("nextBtn");
+    const resultEl = document.getElementById("result");
+
+    // 加载题目
+    function load() {
+      let q = questions[current];
+      qEl.innerText = q.q;
+      optEl.innerHTML = "";
+      fbEl.style.display = "none";
+      nextBtn.style.display = "none";
+
+      q.options.forEach((op, i) => {
+        let btn = document.createElement("button");
+        btn.className = "option";
+        btn.innerText = op;
+        btn.onclick = () => check(i, q.answer);
+        optEl.appendChild(btn);
+      });
+    }
+
+    // 检查答案
+    function check(selected, correct) {
+      let opts = document.querySelectorAll(".option");
+      opts.forEach(o => o.style.pointerEvents = "none");
+
+      if (selected === correct) {
+        opts[selected].classList.add("correct");
+        fbEl.innerText = "✅ Correct!";
+        fbEl.style.background = "#e6f7ef";
+        fbEl.style.color = "#10b981";
+        score++;
+      } else {
+        opts[selected].classList.add("wrong");
+        opts[correct].classList.add("correct");
+        fbEl.innerText = "❌ Wrong!";
+        fbEl.style.background = "#fee2e2";
+        fbEl.style.color = "#ef4444";
+      }
+
+      fbEl.style.display = "block";
+      if (current < questions.length - 1) {
+        nextBtn.style.display = "block";
+      } else {
+        nextBtn.style.display = "none";
+        showResult();
+      }
+    }
+
+    // 下一题
+    nextBtn.onclick = () => {
+      current++;
+      load();
+    };
+
+    // 显示结果
+    function showResult() {
+      resultEl.innerText = `Test Completed! Your Score: ${score}/${questions.length}`;
+      resultEl.style.display = "block";
+    }
+
+    // 开始
+    load();
+  </script>
+</body>
+</html>

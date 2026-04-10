@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>Circle Theorems Quiz - EBU5315</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Arial, sans-serif;
+    }
+    body {
+      background: linear-gradient(135deg, #f0f4ff, #d9e2ff);
+      padding: 20px;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 700px;
+      margin: 40px auto;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 25px;
+      color: #1d4ed8;
+    }
+    .quiz-card {
+      background: white;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+    .question {
+      font-size: 19px;
+      font-weight: 600;
+      margin-bottom: 22px;
+      color: #1e293b;
+      line-height: 1.5;
+    }
+    .option {
+      width: 100%;
+      padding: 14px 18px;
+      margin: 10px 0;
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      font-size: 16px;
+      text-align: left;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .option:hover {
+      background: #eff6ff;
+      border-color: #3b82f6;
+    }
+    .correct {
+      background: #10b981 !important;
+      color: white !important;
+      border-color: #10b981 !important;
+    }
+    .wrong {
+      background: #ef4444 !important;
+      color: white !important;
+      border-color: #ef4444 !important;
+    }
+    .feedback {
+      margin: 22px 0;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-weight: 500;
+      display: none;
+    }
+    .next-btn {
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 13px 22px;
+      border-radius: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: 0.2s;
+      display: none;
+    }
+    .next-btn:hover {
+      background: #1d4ed8;
+    }
+    .result {
+      text-align: center;
+      font-size: 22px;
+      font-weight: bold;
+      color: #2563eb;
+      margin-top: 25px;
+      display: none;
+      padding: 15px;
+      background: #eff6ff;
+      border-radius: 10px;
+    }
+    .progress {
+      font-size: 14px;
+      color: #64748b;
+      margin-bottom: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Circle Theorems Quiz</h1>
+      <p>EBU5315 Interactive Media Design</p>
+    </div>
+    <div class="quiz-card">
+      <div class="progress" id="progress"></div>
+      <div class="question" id="question"></div>
+      <div id="options"></div>
+      <div class="feedback" id="feedback"></div>
+      <button class="next-btn" id="nextBtn">Next Question</button>
+      <div class="result" id="result"></div>
+    </div>
+  </div>
+
+  <script>
+    const questions = [
+      {
+        q: "1. The angle at the center of a circle is twice the angle at the circumference.",
+        options: ["True", "False"],
+        answer: 0
+      },
+      {
+        q: "2. Angles in the same segment are equal.",
+        options: ["True", "False"],
+        answer: 0
+      },
+      {
+        q: "3. The angle in a semicircle is 90 degrees.",
+        options: ["True", "False"],
+        answer: 0
+      },
+      {
+        q: "4. Opposite angles in a cyclic quadrilateral add up to 360°.",
+        options: ["True", "False"],
+        answer: 1
+      },
+      {
+        q: "5. A tangent to a circle is perpendicular to the radius.",
+        options: ["True", "False"],
+        answer: 0
+      }
+    ];
+
+    let current = 0;
+    let score = 0;
+
+    const qEl = document.getElementById("question");
+    const optEl = document.getElementById("options");
+    const fbEl = document.getElementById("feedback");
+    const nextBtn = document.getElementById("nextBtn");
+    const resultEl = document.getElementById("result");
+    const progressEl = document.getElementById("progress");
+
+    function load() {
+      let q = questions[current];
+      progressEl.innerText = `Question ${current + 1} of ${questions.length}`;
+      qEl.innerText = q.q;
+      optEl.innerHTML = "";
+      fbEl.style.display = "none";
+      nextBtn.style.display = "none";
+
+      q.options.forEach((op, i) => {
+        let btn = document.createElement("button");
+        btn.className = "option";
+        btn.innerText = op;
+        btn.onclick = () => check(i, q.answer);
+        optEl.appendChild(btn);
+      });
+    }
+
+    function check(selected, correct) {
+      let opts = document.querySelectorAll(".option");
+      opts.forEach(o => o.style.pointerEvents = "none");
+
+      if (selected === correct) {
+        opts[selected].classList.add("correct");
+        fbEl.innerText = "✅ Correct! Well done.";
+        fbEl.style.background = "#e6f7ef";
+        fbEl.style.color = "#059669";
+        score++;
+      } else {
+        opts[selected].classList.add("wrong");
+        opts[correct].classList.add("correct");
+        fbEl.innerText = "❌ Wrong! Please check the circle theorem.";
+        fbEl.style.background = "#fee2e2";
+        fbEl.style.color = "#dc2626";
+      }
+
+      fbEl.style.display = "block";
+      if (current < questions.length - 1) {
+        nextBtn.style.display = "block";
+      } else {
+        nextBtn.style.display = "none";
+        showResult();
+      }
+    }
+
+    nextBtn.onclick = () => {
+      current++;
+      load();
+    };
+
+    function showResult() {
+      resultEl.innerText = `🎉 Quiz Completed! Your Score: ${score}/${questions.length}`;
+      resultEl.style.display = "block";
+    }
+
+    load();
+  </script>
+</body>
+</html>
