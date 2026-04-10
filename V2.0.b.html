@@ -108,6 +108,11 @@
             justify-content: center;
         }
 
+        .game-container {
+            position: relative;
+            display: inline-block;
+        }
+
         #gameCanvas {
             border: 2px solid var(--border-color);
             border-radius: var(--radius);
@@ -115,6 +120,41 @@
             max-width: 100%;
             height: auto;
             touch-action: none;
+        }
+
+        .pause-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 50%;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            transition: all 0.2s ease;
+        }
+
+        .pause-btn:hover {
+            background-color: rgba(0, 0, 0, 0.7);
+            transform: scale(1.1);
+        }
+
+        .pause-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .pause-icon {
+            font-family: monospace;
+            font-weight: bold;
         }
 
         aside {
@@ -400,6 +440,10 @@
 <body>
     <header>
         <div class="status-item">
+            <span class="status-label" data-i18n="centerHealth">圆心血量</span>
+            <span id="centerHealthText">3</span>
+        </div>
+        <div class="status-item">
             <span class="status-label" data-i18n="level">等级</span>
             <span id="levelText">1</span>
         </div>
@@ -418,7 +462,12 @@
     </header>
 
     <main>
-        <canvas id="gameCanvas" width="800" height="800"></canvas>
+        <div class="game-container">
+            <canvas id="gameCanvas" width="800" height="800"></canvas>
+            <button class="pause-btn" id="pauseBtn" disabled>
+                <span class="pause-icon">❚❚</span>
+            </button>
+        </div>
         <aside>
             <div class="panel-section">
                 <div class="panel-title" data-i18n="pointSelect">选择放置点</div>
@@ -444,14 +493,12 @@
 
             <div class="panel-section">
                 <button class="func-btn" id="startBtn" data-i18n="restart">重新开始</button>
-                <button class="func-btn" id="pauseBtn" disabled data-i18n="pause">暂停</button>
                 <button class="func-btn" id="placeDefenseBtn" disabled data-i18n="placeDefense">放置防御点</button>
-                <button class="func-btn" id="closeShapeBtn" disabled data-i18n="closeShape">几何闭合</button>
             </div>
 
             <div class="panel-section">
-                <div class="panel-title" data-i18n="talent">天赋树</div>
-                <div class="talent-list" id="talentList"></div>
+                <div class="panel-title" data-i18n="selectedTalents">已选择天赋</div>
+                <div class="talent-list" id="selectedTalentsList"></div>
             </div>
         </aside>
     </main>
@@ -559,19 +606,21 @@
             canvas: { width: 800, height: 800, centerX: 400, centerY: 400, radius: 266 },
             player: {
                 level: 1, exp: 0, expToNextLevel: 100,
-                points: { circle: 3, center: 3, outer: 3 },
+                points: { circle: 1, center: 1, outer: 1 },
                 unlockedTalents: [], damageMultiplier: 1, bulletCountMultiplier: 1
             },
             geometry: {
                 placedPoints: [], maxPoints: 5, lines: [], activeTheorems: [],
                 isClosed: false, selectedPointType: 'circle'
             },
+            savedGeometries: [], // 保存已闭合的几何图形
             combat: {
                 baseDamage: 10, monsters: [], bullets: [], wave: 1, score: 0,
                 lastWaveTime: 0, waveInterval: 10000, lastBulletTime: 0, bulletInterval: 500
             },
             settings: { language: 'zh', darkMode: false, colorblindMode: false, fontSize: 'medium', sfx: true },
-            isPlacingMode: false
+            isPlacingMode: false,
+            centerHealth: 3
         };
 
         const i18n = {
@@ -587,7 +636,7 @@
                 levelUp: '升级了！', levelUpDesc: '选择一种点数', gameOver: '游戏结束',
                 finalScore: '最终分数：', finalWave: '坚持波次：', highScore: '最高分：',
                 restart: '重新开始', language: '语言', darkMode: '深色模式', colorblindMode: '色盲友好模式',
-                fontSize: '字体大小', sfx: '音效', confirm: '确认',
+                fontSize: '字体大小', sfx: '音效', confirm: '确认', centerHealth: '圆心血量',
                 theorem1: '圆心角=2×圆周角', theorem2: '半圆直角90°', theorem3: '内接四边形对角互补',
                 theorem4: '切线⊥半径', theorem5: '双切线等长', theorem6: '弦垂直平分线过圆心',
                 theorem7: '等弦等角', theorem8: '相交弦定理'
@@ -604,7 +653,7 @@
                 levelUp: 'Level Up!', levelUpDesc: 'Choose a point', gameOver: 'Game Over',
                 finalScore: 'Score: ', finalWave: 'Wave: ', highScore: 'High Score: ',
                 restart: 'Restart', language: 'Language', darkMode: 'Dark', colorblindMode: 'Colorblind',
-                fontSize: 'Font', sfx: 'SFX', confirm: 'OK',
+                fontSize: 'Font', sfx: 'SFX', confirm: 'OK', centerHealth: 'Core HP',
                 theorem1: 'Central=2×Circumference', theorem2: 'Semicircle 90°', theorem3: 'Cyclic Quadrilateral',
                 theorem4: 'Tangent⊥Radius', theorem5: 'Equal Tangents', theorem6: 'Chord Bisector',
                 theorem7: 'Equal Chords', theorem8: 'Intersect Chords'
@@ -636,14 +685,15 @@
         function saveSettings(){localStorage.setItem('ch',JSON.stringify(gameState.settings))}
         function loadSettings(){const s=localStorage.getItem('ch');if(s){gameState.settings=JSON.parse(s);document.getElementById('languageSelect').value=gameState.settings.language;document.getElementById('darkModeSwitch').classList.toggle('active',gameState.settings.darkMode);document.getElementById('colorblindSwitch').classList.toggle('active',gameState.settings.colorblindMode);document.getElementById('fontSizeSelect').value=gameState.settings.fontSize;document.getElementById('sfxSwitch').classList.toggle('active',gameState.settings.sfx)}applySettings()}
 
-        class Point{constructor(x,y,t){this.x=x;this.y=y;this.type=t}draw(ctx){ctx.beginPath();switch(this.type){case'circle':ctx.arc(this.x,this.y,8,0,Math.PI*2);ctx.fillStyle='var(--color-circle)';break;case'center':ctx.rect(this.x-6,this.y-6,12,12);ctx.fillStyle='var(--color-center)';break;case'outer':ctx.moveTo(this.x,this.y-8);ctx.lineTo(this.x-8,this.y+8);ctx.lineTo(this.x+8,this.y+8);ctx.closePath();ctx.fillStyle='var(--color-outer)';break;}ctx.fill()}}
+        class Point{constructor(x,y,t){this.x=x;this.y=y;this.type=t}draw(ctx){ctx.beginPath();switch(this.type){case'circle':ctx.arc(this.x,this.y,8,0,Math.PI*2);ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--color-circle');break;case'center':ctx.rect(this.x-6,this.y-6,12,12);ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--color-center');break;case'outer':ctx.moveTo(this.x,this.y-8);ctx.lineTo(this.x-8,this.y+8);ctx.lineTo(this.x+8,this.y+8);ctx.closePath();ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--color-outer');break;}ctx.fill()}}
         class Line{constructor(x1,y1,x2,y2,t){this.x1=x1;this.y1=y1;this.x2=x2;this.y2=y2;this.type=t}draw(ctx){ctx.beginPath();ctx.moveTo(this.x1,this.y1);ctx.lineTo(this.x2,this.y2);ctx.strokeStyle='var(--color-line)';ctx.lineWidth=3;ctx.stroke()}}
-        class Monster{constructor(x,y,t,w){this.x=x;this.y=y;this.type=t;this.wave=w;this.hp=20+w*5;this.speed=0.5+w*0.1;this.r=8+w*0.5}move(){const {centerX,centerY}=gameState.canvas;const dx=centerX-this.x,dy=centerY-this.y,d=Math.hypot(dx,dy);if(d)this.x+=dx/d*this.speed,this.y+=dy/d*this.speed}hit(d){this.hp-=d;return this.hp<=0}draw(ctx){ctx.beginPath();ctx.arc(this.x,this.y,this.r,0,Math.PI*2);ctx.fillStyle='var(--color-monster)';ctx.fill();ctx.fillStyle='red';ctx.fillRect(this.x-this.r,this.y-this.r-5,this.r*2*(this.hp/(20+this.wave*5)),3)}}
+        class Monster{constructor(x,y,t,w){this.x=x;this.y=y;this.type=t;this.wave=w;this.hp=20;this.speed=0.5;this.r=8}move(){const {centerX,centerY}=gameState.canvas;const dx=centerX-this.x,dy=centerY-this.y,d=Math.hypot(dx,dy);if(d)this.x+=dx/d*this.speed,this.y+=dy/d*this.speed}hit(d){this.hp-=d;return this.hp<=0}draw(ctx){ctx.beginPath();ctx.arc(this.x,this.y,this.r,0,Math.PI*2);ctx.fillStyle='var(--color-monster)';ctx.fill();ctx.fillStyle='red';ctx.fillRect(this.x-this.r,this.y-this.r-5,this.r*2*(this.hp/20),3)}}
         class Bullet{constructor(x,y,t,d){this.x=x;this.y=y;this.target=t;this.damage=d;this.speed=5;this.r=3}move(){if(!this.target||this.target.hp<=0)this.target=getNearestMonster(this.x,this.y);if(!this.target)return!1;const dx=this.target.x-this.x,dy=this.target.y-this.y,d=Math.hypot(dx,dy);if(d)this.x+=dx/d*this.speed,this.y+=dy/d*this.speed;return!0}hit(){if(!this.target)return!1;return getDistance(this.x,this.y,this.target.x,this.target.y)<=this.r+this.target.r}draw(ctx){ctx.beginPath();ctx.arc(this.x,this.y,this.r,0,Math.PI*2);ctx.fillStyle='var(--color-bullet)';ctx.fill()}}
 
         const canvas=document.getElementById('gameCanvas');const ctx=canvas.getContext('2d');let anim=null;
 
         function updateUI(){
+            document.getElementById('centerHealthText').textContent=gameState.centerHealth;
             document.getElementById('levelText').textContent=gameState.player.level;
             document.getElementById('scoreText').textContent=gameState.combat.score;
             document.getElementById('waveText').textContent=gameState.combat.wave;
@@ -661,9 +711,8 @@
             document.getElementById('outerPointBtn').disabled=!isPlacing||gameState.player.points.outer<=0||full;
             
             const totalPoints = gameState.player.points.circle + gameState.player.points.center + gameState.player.points.outer;
-            document.getElementById('closeShapeBtn').disabled=gameState.geometry.placedPoints.length<2||gameState.geometry.isClosed;
+
             document.getElementById('pauseBtn').disabled=gameState.status!=='playing'&&gameState.status!=='paused';
-            document.getElementById('pauseBtn').textContent=gameState.status==='playing'?i18n[gameState.settings.language].pause:i18n[gameState.settings.language].resume;
             
             // 放置防御点按钮逻辑
             const placeDefenseBtn = document.getElementById('placeDefenseBtn');
@@ -678,7 +727,19 @@
             const lab=document.getElementById('theoremLabel');
             lab.innerHTML=gameState.geometry.activeTheorems.length?gameState.geometry.activeTheorems.map(t=>`<span class="theorem-tag">${i18n[gameState.settings.language][t.id]}</span>`).join(''):`<span data-i18n="noTheorem">${i18n[gameState.settings.language].noTheorem}</span>`;
             
-            document.getElementById('talentList').innerHTML=talentTree.map(t=>`<div class="talent-item ${gameState.player.unlockedTalents.includes(t.id)?'unlocked':'locked'}"><strong>${t.name[gameState.settings.language]}</strong><p>${t.desc[gameState.settings.language]}</p><small>Lv.${t.level}</small></div>`).join('');
+            // 显示已选择的天赋
+            const selectedTalentsList = document.getElementById('selectedTalentsList');
+            if (gameState.player.selectedTalents && gameState.player.selectedTalents.length > 0) {
+                selectedTalentsList.innerHTML = gameState.player.selectedTalents.map(t => `
+                    <div class="talent-item unlocked">
+                        <strong>${t.name[gameState.settings.language]}</strong>
+                        <p>${t.desc[gameState.settings.language]}</p>
+                        <small>Lv.${t.level}</small>
+                    </div>
+                `).join('');
+            } else {
+                selectedTalentsList.innerHTML = '<p style="text-align: center; color: #666;">暂无选择的天赋</p>';
+            }
         }
 
         function draw(){
@@ -686,8 +747,17 @@
             const {centerX,centerY,radius}=gameState.canvas;
             ctx.beginPath();ctx.arc(centerX,centerY,radius,0,Math.PI*2);ctx.strokeStyle='var(--text-color)';ctx.lineWidth=2;ctx.stroke();
             ctx.beginPath();ctx.arc(centerX,centerY,6,0,Math.PI*2);ctx.fillStyle='var(--color-center)';ctx.fill();
+            
+            // 绘制所有保存的几何图形
+            gameState.savedGeometries.forEach(geometry => {
+                geometry.lines.forEach(l=>l.draw(ctx));
+                geometry.placedPoints.forEach(p=>p.draw(ctx));
+            });
+            
+            // 绘制当前正在编辑的几何图形
             gameState.geometry.lines.forEach(l=>l.draw(ctx));
             gameState.geometry.placedPoints.forEach(p=>p.draw(ctx));
+            
             gameState.combat.monsters.forEach(m=>m.draw(ctx));
             gameState.combat.bullets.forEach(b=>b.draw(ctx));
         }
@@ -747,7 +817,18 @@
             gameState.geometry.lines=[];
             for(let i=0;i<pts.length;i++){const p1=pts[i],p2=pts[(i+1)%pts.length];gameState.geometry.lines.push(new Line(p1.x,p1.y,p2.x,p2.y,'line'))}
             detectTheorems();
-            gameState.geometry.isClosed=true;sounds.close();updateUI();
+            gameState.geometry.isClosed=true;
+            
+            // 保存当前几何图形（深拷贝，保留对象方法）
+            const savedGeometry = {
+                placedPoints: gameState.geometry.placedPoints.map(p => new Point(p.x, p.y, p.type)),
+                lines: gameState.geometry.lines.map(l => new Line(l.x1, l.y1, l.x2, l.y2, l.type)),
+                activeTheorems: [...gameState.geometry.activeTheorems],
+                isClosed: gameState.geometry.isClosed
+            };
+            gameState.savedGeometries.push(savedGeometry);
+            
+            sounds.close();updateUI();
         }
 
         function spawnMonsters(){
@@ -758,9 +839,20 @@
         }
 
         function spawnBullets(){
-            if(!gameState.geometry.isClosed)return;const {centerX,centerY}=gameState.canvas;
+            const {centerX,centerY}=gameState.canvas;
             const t=getNearestMonster(centerX,centerY);if(!t)return;
-            gameState.combat.bullets.push(new Bullet(centerX,centerY,t,gameState.combat.baseDamage*gameState.player.damageMultiplier));
+            const baseDamage=gameState.combat.baseDamage;
+            const damageMultiplier=gameState.player.damageMultiplier;
+            let bulletDamage=baseDamage*damageMultiplier;
+            if(gameState.geometry.activeTheorems.length>0){
+                bulletDamage*=(1+gameState.geometry.activeTheorems.length*0.2);
+            }
+            gameState.savedGeometries.forEach(geometry=>{
+                if(geometry.activeTheorems.length>0){
+                    bulletDamage*=(1+geometry.activeTheorems.length*0.1);
+                }
+            });
+            gameState.combat.bullets.push(new Bullet(centerX,centerY,t,bulletDamage));
             gameState.combat.lastBulletTime=Date.now();
         }
 
@@ -768,9 +860,78 @@
             while(gameState.player.exp>=gameState.player.expToNextLevel){
                 gameState.player.exp-=gameState.player.expToNextLevel;gameState.player.level++;
                 gameState.player.expToNextLevel=Math.floor(gameState.player.expToNextLevel*1.5);
-                sounds.level();gameState.status='paused';document.getElementById('levelUpModal').classList.add('active');
-                talentTree.forEach(t=>{if(gameState.player.level>=t.level&&!gameState.player.unlockedTalents.includes(t.id)){gameState.player.unlockedTalents.push(t.id);t.effect(gameState)}});
+                sounds.level();gameState.status='paused';
+                
+                // 每5级允许选择天赋
+                if (gameState.player.level % 5 === 0) {
+                    showTalentSelection();
+                } else {
+                    // 普通升级，选择点数
+                    document.getElementById('levelUpModal').classList.add('active');
+                }
+                
+                updateUI();
             }
+        }
+        
+        // 天赋选择函数
+        function showTalentSelection() {
+            // 生成3个随机天赋选项
+            const availableTalents = talentTree.filter(t => 
+                t.level <= gameState.player.level && 
+                (!gameState.player.selectedTalents || !gameState.player.selectedTalents.some(st => st.id === t.id))
+            );
+            
+            // 如果没有可用天赋，就显示普通升级选项
+            if (availableTalents.length < 3) {
+                document.getElementById('levelUpModal').classList.add('active');
+                return;
+            }
+            
+            // 随机选择3个天赋
+            const shuffled = availableTalents.sort(() => 0.5 - Math.random());
+            const selected = shuffled.slice(0, 3);
+            
+            // 更新天赋选择模态框
+            const modal = document.getElementById('levelUpModal');
+            const options = modal.querySelector('.levelup-options');
+            
+            options.innerHTML = selected.map(t => `
+                <div class="levelup-option" data-talent-id="${t.id}">
+                    <div class="option-icon" style="background-color: var(--color-line); border-radius: 50%;"></div>
+                    <div>
+                        <strong>${t.name[gameState.settings.language]}</strong>
+                        <p style="font-size: 12px; margin: 5px 0;">${t.desc[gameState.settings.language]}</p>
+                        <small>Lv.${t.level}</small>
+                    </div>
+                </div>
+            `).join('');
+            
+            // 添加点击事件
+            options.querySelectorAll('.levelup-option').forEach(option => {
+                option.onclick = function() {
+                    const talentId = this.dataset.talentId;
+                    const talent = talentTree.find(t => t.id === talentId);
+                    
+                    // 应用天赋效果
+                    talent.effect(gameState);
+                    
+                    // 保存已选择的天赋
+                    if (!gameState.player.selectedTalents) {
+                        gameState.player.selectedTalents = [];
+                    }
+                    gameState.player.selectedTalents.push(talent);
+                    
+                    // 关闭模态框
+                    modal.classList.remove('active');
+                    gameState.status = 'playing';
+                    updateUI();
+                    sounds.click();
+                };
+            });
+            
+            // 显示模态框
+            modal.classList.add('active');
         }
 
         function gameOver(){
@@ -792,8 +953,8 @@
 
             for(let i=gameState.combat.monsters.length-1;i>=0;i--){
                 const m=gameState.combat.monsters[i];m.move();
-                if(getDistance(m.x,m.y,centerX,centerY)<=m.r+5){gameOver();return}
-                let d=0;gameState.geometry.lines.forEach(l=>{if(isPointOnLine(m.x,m.y,l.x1,l.y1,l.x2,l.y2,m.r))d+=gameState.combat.baseDamage*gameState.player.damageMultiplier});
+                if(getDistance(m.x,m.y,centerX,centerY)<=m.r+5){gameState.centerHealth--;gameState.combat.monsters.splice(i,1);sounds.kill();if(gameState.centerHealth<=0){gameOver();return}}
+                let d=0;gameState.geometry.lines.forEach(l=>{if(isPointOnLine(m.x,m.y,l.x1,l.y1,l.x2,l.y2,m.r))d+=gameState.combat.baseDamage*gameState.player.damageMultiplier});gameState.savedGeometries.forEach(geometry=>{geometry.lines.forEach(l=>{if(isPointOnLine(m.x,m.y,l.x1,l.y1,l.x2,l.y2,m.r))d+=gameState.combat.baseDamage*gameState.player.damageMultiplier})});
                 if(d&&m.hit(d)){gameState.combat.score+=m.wave*10;gameState.player.exp+=m.wave*5;gameState.combat.monsters.splice(i,1);sounds.kill();checkLevelUp()}
             }
 
@@ -805,10 +966,10 @@
             draw();updateUI();anim=requestAnimationFrame(gameLoop);
         }
 
-        function startGame(){
+        function initGame(){
             gameState.status='paused';
             gameState.isPlacingMode=false;
-            gameState.player={level:1,exp:0,expToNextLevel:100,points:{circle:3,center:3,outer:3},unlockedTalents:[],damageMultiplier:1,bulletCountMultiplier:1};
+            gameState.player={level:1,exp:0,expToNextLevel:100,points:{circle:1,center:1,outer:1},selectedTalents:[],damageMultiplier:1,bulletCountMultiplier:1};
             gameState.geometry={placedPoints:[],maxPoints:5,lines:[],activeTheorems:[],isClosed:false,selectedPointType:'circle'};
             gameState.combat={baseDamage:10,monsters:[],bullets:[],wave:1,score:0,lastWaveTime:Date.now(),waveInterval:10000,lastBulletTime:0,bulletInterval:500};
             tempPoints=null;
@@ -825,6 +986,11 @@
             alert(i18n[gameState.settings.language].clickToPlaceDefense);
         }
 
+        function startGame(){
+            // 直接刷新页面来重新开始游戏
+            location.reload();
+        }
+
         function togglePause(){gameState.status=gameState.status==='playing'?'paused':'playing';updateUI()}
 
         function canvasClick(e){
@@ -838,13 +1004,13 @@
 
             switch(type){
                 case 'center':
-                    if(d<radius-5){fx=x;fy=y;valid=true}
+                    if(d<radius-5){fx=centerX;fy=centerY;valid=true}
                     break;
                 case 'circle':
                     if(Math.abs(d-radius)<=15){const k=radius/d;fx=centerX+(x-centerX)*k;fy=centerY+(y-centerY)*k;valid=true}
                     break;
                 case 'outer':
-                    if(d>=radius+10){valid=true}
+                    if(d>=radius-5){valid=true}
                     break;
             }
 
@@ -871,9 +1037,18 @@
                     document.getElementById('placeDefenseModal').classList.add('active');
                 }
             } else {
-                // 进入放置模式
+                // 进入放置模式，开始新图形绘制
                 const totalPoints = gameState.player.points.circle + gameState.player.points.center + gameState.player.points.outer;
                 if (totalPoints >= 3) {
+                    // 重置几何图形，开始新的图形制作
+                    gameState.geometry = {
+                        placedPoints: [],
+                        maxPoints: 5,
+                        lines: [],
+                        activeTheorems: [],
+                        isClosed: false,
+                        selectedPointType: 'circle'
+                    };
                     gameState.isPlacingMode = true;
                     gameState.status = 'paused';
                     tempPoints = {
@@ -885,18 +1060,20 @@
             }
             sounds.click();
             updateUI();
+            draw();
         }
         
         function cancelDefense() {
             if (tempPoints) {
                 gameState.player.points = { ...tempPoints };
+                // 重置几何图形，准备开始新的绘制
                 gameState.geometry = {
                     placedPoints: [],
                     maxPoints: 5,
                     lines: [],
                     activeTheorems: [],
                     isClosed: false,
-                    selectedPointType: gameState.geometry.selectedPointType
+                    selectedPointType: 'circle'
                 };
                 tempPoints = null;
             }
@@ -920,11 +1097,10 @@
         document.getElementById('centerPointBtn').onclick=()=>{gameState.geometry.selectedPointType='center';document.querySelectorAll('.point-btn').forEach(b=>b.classList.remove('active'));document.getElementById('centerPointBtn').classList.add('active');sounds.click()};
         document.getElementById('outerPointBtn').onclick=()=>{gameState.geometry.selectedPointType='outer';document.querySelectorAll('.point-btn').forEach(b=>b.classList.remove('active'));document.getElementById('outerPointBtn').classList.add('active');sounds.click()};
 
-        document.getElementById('confirmStartBtn').onclick=()=>{startGame();sounds.click()};
+        document.getElementById('confirmStartBtn').onclick=()=>{initGame();sounds.click()};
         document.getElementById('startBtn').onclick=()=>{startGame();sounds.click()};
         document.getElementById('pauseBtn').onclick=()=>{togglePause();sounds.click()};
         document.getElementById('placeDefenseBtn').onclick=()=>{placeDefense()};
-        document.getElementById('closeShapeBtn').onclick=()=>{closeShape();sounds.click()};
         document.getElementById('restartBtn').onclick=()=>{startGame();sounds.click()};
         document.getElementById('settingBtn').onclick=()=>{document.getElementById('settingModal').classList.add('active');sounds.click()};
         document.getElementById('closeSettingBtn').onclick=()=>{saveSettings();applySettings();document.getElementById('settingModal').classList.remove('active');sounds.click()};
