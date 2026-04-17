@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Circle Theorems - V3 | EBU5315</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Segoe UI", sans-serif;
+    }
+
+    :root {
+      --pri: #2563eb;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #1e293b;
+      --gray: #64748b;
+    }
+
+    .dark {
+      --pri: #3b82f6;
+      --bg: #0f172a;
+      --card: #1e293b;
+      --text: #f1f5f9;
+      --gray: #cbd5e1;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-size: 100%;
+      transition: all 0.3s;
+    }
+
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 30px;
+      background: var(--card);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      position: sticky;
+      top: 0;
+      z-index: 99;
+    }
+    .logo {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--pri);
+      cursor: pointer;
+    }
+    .nav a {
+      margin: 0 14px;
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .nav a:hover {
+      color: var(--pri);
+    }
+    .tools button {
+      margin-left: 8px;
+      padding: 6px 10px;
+      border: 1px solid var(--pri);
+      background: transparent;
+      color: var(--pri);
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .ad {
+      background: #fffbeb;
+      color: #92400e;
+      padding: 10px;
+      text-align: center;
+      margin: 20px;
+      border-radius: 8px;
+      border: 1px solid #fbbf24;
+    }
+
+    .hero {
+      text-align: center;
+      padding: 60px 20px;
+      background: var(--card);
+      margin: 0 20px 20px;
+      border-radius: 12px;
+    }
+    .hero h1 {
+      font-size: 34px;
+      margin-bottom: 12px;
+    }
+    .circle {
+      width: 200px;
+      margin: 20px auto;
+      animation: rotate 15s linear infinite;
+    }
+    @keyframes rotate {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .btn {
+      padding: 12px 26px;
+      background: var(--pri);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .btn:hover {
+      background: #1d4ed8;
+    }
+
+    .box {
+      padding: 40px 20px;
+      text-align: center;
+    }
+    .cards {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-top: 24px;
+    }
+    .card {
+      width: 280px;
+      background: var(--card);
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .card:hover {
+      transform: translateY(-4px);
+    }
+
+    .contact {
+      background: var(--card);
+      padding: 36px;
+      margin: 20px;
+      border-radius: 12px;
+      text-align: center;
+    }
+    .contact input, .contact textarea {
+      width: 100%;
+      max-width: 520px;
+      padding: 12px;
+      margin: 8px 0;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .ai-btn {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      width: 64px;
+      height: 64px;
+      background: var(--pri);
+      color: white;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-size: 24px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    .ai-panel {
+      display: none;
+      position: fixed;
+      bottom: 100px;
+      right: 24px;
+      width: 320px;
+      background: var(--card);
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      padding: 16px;
+    }
+    .ai-body {
+      height: 240px;
+      background: var(--bg);
+      border-radius: 8px;
+      padding: 10px;
+      overflow-y: auto;
+      margin: 10px 0;
+      text-align: left;
+    }
+
+    footer {
+      text-align: center;
+      padding: 24px;
+      background: var(--card);
+      margin-top: 30px;
+      border-top: 1px solid #eee;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="navbar">
+    <div class="logo" onclick="goHome()">Circle Theorems</div>
+    <div class="nav">
+      <a onclick="goHome()" id="nav1">首页</a>
+      <a onclick="toStudy()" id="nav2">学习</a>
+      <a onclick="toQuiz()" id="nav3">测验</a>
+      <a onclick="toGame()" id="nav4">游戏</a>
+    </div>
+    <div class="tools">
+      <button id="lang">中文/EN</button>
+      <button id="font">A+</button>
+      <button id="dark">暗黑</button>
+    </div>
+  </div>
+
+  <div class="ad" id="adTxt">📢 教育公益支持 · 帮助我们免费运营学习平台</div>
+
+  <div class="hero">
+    <h1 id="heroTitle">圆定理 · 互动几何学习</h1>
+    <p id="heroSub">动态可视化 | AI 答疑 | 游戏化练习</p>
+    <img class="circle" src="https://picsum.photos/id/1000/200/200" alt="circle">
+    <br><br>
+    <button class="btn" onclick="startLearn()" id="startBtn">开始学习</button>
+  </div>
+
+  <div class="box">
+    <h2 id="theoTitle">核心圆定理</h2>
+    <div class="cards">
+      <div class="card" onclick="openTheo(1)" id="c1">圆心角定理</div>
+      <div class="card" onclick="openTheo(2)" id="c2">圆周角定理</div>
+      <div class="card" onclick="openTheo(3)" id="c3">切线性质</div>
+      <div class="card" onclick="openTheo(4)" id="c4">内接四边形</div>
+    </div>
+  </div>
+
+  <div class="box" style="background:var(--card); margin:20px; border-radius:12px;">
+    <h2 id="uspTitle">平台优势</h2><br>
+    <p id="uspTxt">✅ 完全互动 | ✅ 动态演示 | ✅ AI 辅助 | ✅ 100% 免费</p>
+  </div>
+
+  <div class="box">
+    <h2 id="challengeTitle">准备好挑战了吗？</h2><br>
+    <button class="btn" onclick="toQuiz()" id="quizBtn">进入测验</button>
+  </div>
+
+  <div class="contact">
+    <h2 id="contactTitle">联系我们</h2><br>
+    <input type="text" id="name" placeholder="姓名" data-zh="姓名" data-en="Name"><br>
+    <input type="email" id="email" placeholder="邮箱" data-zh="邮箱" data-en="Email"><br>
+    <textarea id="msg" rows="4" placeholder="留言内容" data-zh="留言内容" data-en="Message"></textarea><br><br>
+    <button class="btn" onclick="submitForm()" id="submitBtn">提交</button>
+  </div>
+
+  <div class="ai-btn" onclick="toggleAI()">AI</div>
+  <div class="ai-panel" id="aiBox">
+    <h4 id="aiTitle">AI 答疑助手</h4>
+    <div class="ai-body" id="aiText">你好！我可以帮你解答圆定理问题～</div>
+    <input type="text" id="aiInput" placeholder="输入问题..." data-zh="输入问题..." data-en="Ask a question...">
+    <button class="btn" style="width:100%; margin-top:10px;" onclick="sendAI()" id="aiSend">发送</button>
+  </div>
+
+  <footer id="footer">© 2026 EBU5315 V3 | 圆定理学习首页</footer>
+
+  <script>
+    // 导航
+    function goHome(){alert("Back to Homepage");}
+    function toStudy(){alert("Go to Study");}
+    function toQuiz(){alert("Go to Quiz");}
+    function toGame(){alert("Go to Game");}
+    function startLearn(){alert("Start Learning");}
+
+    function openTheo(n){
+      const cn = ["圆心角定理","圆周角定理","切线性质","内接四边形"];
+      const en = ["Central Angle Theorem","Circumference Angle Theorem","Tangent Properties","Cyclic Quadrilateral"];
+      const isZh = document.documentElement.lang === "zh-CN";
+      alert(isZh ? "打开："+cn[n-1] : "Open: "+en[n-1]);
+    }
+
+    function submitForm(){
+      const n = document.getElementById("name").value;
+      const e = document.getElementById("email").value;
+      const m = document.getElementById("msg").value;
+      const isZh = document.documentElement.lang === "zh-CN";
+      if(!n||!e||!m) return alert(isZh ? "请填写完整信息！" : "Please fill all fields!");
+      alert(isZh ? "提交成功！" : "Submitted successfully!");
+    }
+
+    // ==============================================
+    // ✅ 真正中英双语切换（整页文字同步切换）
+    // ==============================================
+    let isChinese = true;
+    document.getElementById("lang").onclick = function(){
+      isChinese = !isChinese;
+      document.documentElement.lang = isChinese ? "zh-CN" : "en";
+
+      // 按钮文字
+      this.innerText = isChinese ? "中文/EN" : "中文/EN";
+
+      // 导航
+      document.getElementById("nav1").innerText = isChinese ? "首页" : "Home";
+      document.getElementById("nav2").innerText = isChinese ? "学习" : "Study";
+      document.getElementById("nav3").innerText = isChinese ? "测验" : "Quiz";
+      document.getElementById("nav4").innerText = isChinese ? "游戏" : "Game";
+
+      // 广告
+      document.getElementById("adTxt").innerText = isChinese 
+        ? "📢 教育公益支持 · 帮助我们免费运营学习平台" 
+        : "📢 Non-profit Education · Support us to run free learning";
+
+      // 首屏
+      document.getElementById("heroTitle").innerText = isChinese ? "圆定理 · 互动几何学习" : "Circle Theorems · Interactive Math";
+      document.getElementById("heroSub").innerText = isChinese ? "动态可视化 | AI 答疑 | 游戏化练习" : "Visual | AI Helper | Game Practice";
+      document.getElementById("startBtn").innerText = isChinese ? "开始学习" : "Start Learning";
+
+      // 定理
+      document.getElementById("theoTitle").innerText = isChinese ? "核心圆定理" : "Key Circle Theorems";
+      document.getElementById("c1").innerText = isChinese ? "圆心角定理" : "Central Angle Theorem";
+      document.getElementById("c2").innerText = isChinese ? "圆周角定理" : "Circumference Angle Theorem";
+      document.getElementById("c3").innerText = isChinese ? "切线性质" : "Tangent Properties";
+      document.getElementById("c4").innerText = isChinese ? "内接四边形" : "Cyclic Quadrilateral";
+
+      // USP
+      document.getElementById("uspTitle").innerText = isChinese ? "平台优势" : "Our Advantages";
+      document.getElementById("uspTxt").innerText = isChinese 
+        ? "✅ 完全互动 | ✅ 动态演示 | ✅ AI 辅助 | ✅ 100% 免费" 
+        : "✅ Interactive | ✅ Visual | ✅ AI Help | ✅ 100% Free";
+
+      // Challenge
+      document.getElementById("challengeTitle").innerText = isChinese ? "准备好挑战了吗？" : "Ready for a Challenge?";
+      document.getElementById("quizBtn").innerText = isChinese ? "进入测验" : "Go to Quiz";
+
+      // Contact
+      document.getElementById("contactTitle").innerText = isChinese ? "联系我们" : "Contact Us";
+      document.getElementById("submitBtn").innerText = isChinese ? "提交" : "Submit";
+
+      // AI
+      document.getElementById("aiTitle").innerText = isChinese ? "AI 答疑助手" : "AI Helper";
+      document.getElementById("aiText").innerText = isChinese ? "你好！我可以帮你解答圆定理问题～" : "Hi! I can help with circle theorems!";
+      document.getElementById("aiSend").innerText = isChinese ? "发送" : "Send";
+
+      // 输入框占位符
+      document.getElementById("name").placeholder = isChinese ? "姓名" : "Name";
+      document.getElementById("email").placeholder = isChinese ? "邮箱" : "Email";
+      document.getElementById("msg").placeholder = isChinese ? "留言内容" : "Message";
+      document.getElementById("aiInput").placeholder = isChinese ? "输入问题..." : "Ask a question...";
+
+      // Footer
+      document.getElementById("footer").innerText = isChinese 
+        ? "© 2026 EBU5315 V3 | 圆定理学习首页" 
+        : "© 2026 EBU5315 V3 | Circle Theorems Learning";
+    };
+
+    // 字体缩放
+    let f = 100;
+    document.getElementById("font").onclick = ()=>{
+      f+=10; if(f>140)f=100;
+      document.body.style.fontSize = f+"%";
+    };
+
+    // 暗黑模式
+    document.getElementById("dark").onclick = ()=>{
+      document.body.classList.toggle("dark");
+      document.getElementById("dark").innerText = document.body.classList.contains("dark") ? "Light" : "Dark";
+    };
+
+    // AI面板
+    function toggleAI(){
+      const p = document.getElementById("aiBox");
+      p.style.display = p.style.display=="block"?"none":"block";
+    }
+
+    // AI聊天
+    function sendAI(){
+      const i = document.getElementById("aiInput");
+      const t = document.getElementById("aiText");
+      const isZh = document.documentElement.lang === "zh-CN";
+      if(!i.value)return;
+      t.innerHTML += `<br>👉 ${i.value}`;
+      t.innerHTML += isZh 
+        ? `<br><br>🤖 我已收到你的问题！` 
+        : `<br><br>🤖 I received your question!`;
+      i.value="";
+      t.scrollTop = t.scrollHeight;
+    }
+  </script>
+</body>
+</html>
