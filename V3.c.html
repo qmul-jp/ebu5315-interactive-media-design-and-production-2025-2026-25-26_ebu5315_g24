@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Circle Theorems Quiz - EBU5315</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #f0f4ff, #d9e2ff, #c7d2fe);
+      padding: 20px;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .container {
+      max-width: 720px;
+      width: 100%;
+      margin: 20px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 28px;
+      color: #1d4ed8;
+    }
+
+    .header h1 {
+      font-size: 28px;
+      margin-bottom: 6px;
+    }
+
+    .header p {
+      font-size: 15px;
+      color: #475569;
+      font-weight: 500;
+    }
+
+    .quiz-card {
+      background: white;
+      padding: 36px;
+      border-radius: 20px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+      transition: all 0.3s ease;
+    }
+
+    .progress {
+      font-size: 15px;
+      color: #64748b;
+      margin-bottom: 16px;
+      font-weight: 500;
+    }
+
+    .question {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 26px;
+      color: #1e293b;
+      line-height: 1.6;
+      min-height: 60px;
+    }
+
+    .option {
+      width: 100%;
+      padding: 16px 20px;
+      margin: 12px 0;
+      background: #f8fafc;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      font-size: 17px;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      outline: none;
+    }
+
+    .option:hover:not(:disabled) {
+      background: #eff6ff;
+      border-color: #3b82f6;
+      transform: translateX(4px);
+    }
+
+    .option:disabled {
+      cursor: not-allowed;
+    }
+
+    .correct {
+      background: #10b981 !important;
+      color: white !important;
+      border-color: #059669 !important;
+    }
+
+    .wrong {
+      background: #ef4444 !important;
+      color: white !important;
+      border-color: #dc2626 !important;
+    }
+
+    .feedback {
+      margin: 26px 0;
+      padding: 14px 18px;
+      border-radius: 10px;
+      font-weight: 500;
+      font-size: 16px;
+      display: none;
+      animation: fadeIn 0.4s ease;
+    }
+
+    .next-btn {
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 15px 26px;
+      border-radius: 12px;
+      font-size: 17px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      display: none;
+      box-shadow: 0 2px 8px rgba(37,99,235,0.25);
+    }
+
+    .next-btn:hover {
+      background: #1d4ed8;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(37,99,235,0.3);
+    }
+
+    .result {
+      text-align: center;
+      font-size: 23px;
+      font-weight: bold;
+      color: #2563eb;
+      margin-top: 30px;
+      display: none;
+      padding: 22px;
+      background: linear-gradient(to right, #eff6ff, #dbeafe);
+      border-radius: 14px;
+      animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Circle Theorems Quiz</h1>
+      <p>EBU5315 Interactive Media Design</p>
+    </div>
+    <div class="quiz-card">
+      <div class="progress" id="progress"></div>
+      <div class="question" id="question"></div>
+      <div id="options"></div>
+      <div class="feedback" id="feedback"></div>
+      <button class="next-btn" id="nextBtn">Next Question</button>
+      <div class="result" id="result"></div>
+    </div>
+  </div>
+
+  <script>
+    // 题库（可自由增删题目）
+    const questions = [
+      {
+        q: "1. The angle at the center of a circle is twice the angle at the circumference.",
+        options: ["True", "False"],
+        answer: 0
+      },
+      {
+        q: "2. Angles in the same segment are equal.",
+        options: ["True", "False"],
+        answer: 0
+      },
+      {
+        q: "3. The angle in a semicircle is 90 degrees.",
+        options: ["True", "False"],
+        answer: 0
+      },
+      {
+        q: "4. Opposite angles in a cyclic quadrilateral add up to 360°.",
+        options: ["True", "False"],
+        answer: 1
+      },
+      {
+        q: "5. A tangent to a circle is perpendicular to the radius.",
+        options: ["True", "False"],
+        answer: 0
+      }
+    ];
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+
+    // DOM 元素
+    const questionEl = document.getElementById("question");
+    const optionsEl = document.getElementById("options");
+    const feedbackEl = document.getElementById("feedback");
+    const nextBtn = document.getElementById("nextBtn");
+    const resultEl = document.getElementById("result");
+    const progressEl = document.getElementById("progress");
+
+    // 加载当前题目
+    function loadQuestion() {
+      const currentQuestion = questions[currentQuestionIndex];
+      
+      // 更新进度与题目
+      progressEl.textContent = `Question ${currentQuestionIndex + 1} / ${questions.length}`;
+      questionEl.textContent = currentQuestion.q;
+      optionsEl.innerHTML = "";
+      
+      // 重置反馈与按钮
+      feedbackEl.style.display = "none";
+      nextBtn.style.display = "none";
+      resultEl.style.display = "none";
+
+      // 渲染选项
+      currentQuestion.options.forEach((option, index) => {
+        const optionBtn = document.createElement("button");
+        optionBtn.className = "option";
+        optionBtn.textContent = option;
+        optionBtn.onclick = () => selectOption(index, currentQuestion.answer);
+        optionsEl.appendChild(optionBtn);
+      });
+    }
+
+    // 选择答案后校验
+    function selectOption(selectedIndex, correctIndex) {
+      const allOptions = document.querySelectorAll(".option");
+      
+      // 禁止重复点击
+      allOptions.forEach(option => option.disabled = true);
+
+      // 判断对错
+      if (selectedIndex === correctIndex) {
+        allOptions[selectedIndex].classList.add("correct");
+        feedbackEl.textContent = "✅ Correct! Well done.";
+        feedbackEl.style.background = "#ecfdf5";
+        feedbackEl.style.color = "#047857";
+        score++;
+      } else {
+        allOptions[selectedIndex].classList.add("wrong");
+        allOptions[correctIndex].classList.add("correct");
+        feedbackEl.textContent = "❌ Wrong! The correct answer is shown in green.";
+        feedbackEl.style.background = "#fef2f2";
+        feedbackEl.style.color = "#b91c1c";
+      }
+
+      // 显示反馈
+      feedbackEl.style.display = "block";
+
+      // 判断是否显示下一题 / 结束
+      if (currentQuestionIndex < questions.length - 1) {
+        nextBtn.style.display = "block";
+      } else {
+        setTimeout(showFinalResult, 600);
+      }
+    }
+
+    // 下一题
+    nextBtn.onclick = () => {
+      currentQuestionIndex++;
+      loadQuestion();
+    };
+
+    // 显示最终结果
+    function showFinalResult() {
+      resultEl.textContent = `🎉 Quiz Completed! Your Score: ${score}/${questions.length}`;
+      resultEl.style.display = "block";
+    }
+
+    // 初始化
+    loadQuestion();
+  </script>
+</body>
+</html>
