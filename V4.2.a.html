@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+ <title>Circle Theorems | V4 | EBU5315</title>
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', sans-serif;
+}
+:root {
+  --pri: #2563eb;
+  --bg: #f8fafc;
+  --card: #fff;
+  --text: #1e293b;
+}
+.dark {
+  --pri: #3b82f6;
+  --bg: #0f172a;
+  --card: #1e293b;
+  --text: #f1f5f9;
+}
+body {
+  background: var(--bg);
+  color: var(--text);
+  transition: all 0.3s;
+  font-size: 100%;
+}
+
+/* 导航 + 面包屑 */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 30px;
+  background: var(--card);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  position: sticky;
+  top:0; z-index:99;
+}
+.logo {
+  font-size:22px; font-weight:700; color:var(--pri); cursor:pointer;
+}
+.nav a {
+  margin:0 14px; color:var(--text); text-decoration:none; cursor:pointer;
+}
+.nav a:hover { color:var(--pri); }
+.tools button {
+  margin-left:8px; padding:6px 10px; border:1px solid var(--pri);
+  background:transparent; color:var(--pri); border-radius:6px; cursor:pointer;
+}
+.bread {
+  padding:8px 30px; background:var(--card); font-size:14px; color:#666;
+}
+
+/* 广告 */
+.ad {
+  background: #fffbeb; color:#92400e; padding:10px; text-align:center;
+  margin:20px; border-radius:8px; border:1px solid #fbbf24;
+}
+
+/* 首屏动画 */
+.hero {
+  text-align:center; padding:60px 20px; background:var(--card);
+  margin:0 20px 20px; border-radius:12px;
+}
+.hero h1 { font-size:34px; margin-bottom:12px; }
+.circle {
+  width:200px; margin:20px auto;
+  animation: rotate 12s linear infinite;
+}
+@keyframes rotate {
+  0%{transform:rotate(0deg);}
+  100%{transform:rotate(360deg);}
+}
+.btn {
+  padding:12px 26px; background:var(--pri); color:#fff; border:none;
+  border-radius:8px; font-size:16px; cursor:pointer; transition:0.2s;
+}
+.btn:hover { background:#1d4ed8; }
+
+/* 卡片 */
+.box { padding:40px 20px; text-align:center; }
+.cards {
+  display:flex; justify-content:center; gap:20px; flex-wrap:wrap; margin-top:24px;
+}
+.card {
+  width:280px; background:var(--card); padding:24px; border-radius:12px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.08); cursor:pointer; transition:0.2s;
+}
+.card:hover { transform:translateY(-4px); }
+
+/* 表单 */
+.contact {
+  background:var(--card); padding:36px; margin:20px; border-radius:12px; text-align:center;
+}
+.contact input, .contact textarea {
+  width:100%; max-width:520px; padding:12px; margin:8px 0;
+  border:1px solid #ddd; border-radius:8px; background:var(--bg); color:var(--text);
+}
+
+/* AI 面板 */
+.ai-btn {
+  position:fixed; bottom:24px; right:24px; width:64px; height:64px;
+  background:var(--pri); color:#fff; border-radius:50%; display:grid;
+  place-items:center; font-size:24px; cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.2);
+}
+.ai-panel {
+  display:none; position:fixed; bottom:100px; right:24px; width:320px;
+  background:var(--card); border-radius:12px; box-shadow:0 4px 20px rgba(0,0,0,0.15);
+  padding:16px;
+}
+.ai-body {
+  height:240px; background:var(--bg); border-radius:8px; padding:10px;
+  overflow-y:auto; margin:10px 0; text-align:left;
+}
+
+/* 定理弹窗 */
+.modal {
+  display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+  background:rgba(0,0,0,0.5); z-index:999; justify-content:center; align-items:center;
+}
+.modal-content {
+  background:var(--card); width:90%; max-width:500px; padding:30px; border-radius:16px; position:relative;
+}
+.close {
+  position:absolute; top:16px; right:16px; font-size:24px; cursor:pointer;
+}
+
+footer {
+  text-align:center; padding:24px; background:var(--card); margin-top:30px; border-top:1px solid #eee;
+}
+</style>
+</head>
+
+<body>
+
+<!-- 导航 -->
+<div class="navbar">
+  <div class="logo" onclick="goHome()">Circle Theorems</div>
+  <div class="nav">
+    <a onclick="goHome()" id="nav1">首页</a>
+    <a onclick="toQuiz()" id="nav2">测验</a>
+    <a onclick="toGame()" id="nav3">游戏</a>
+  </div>
+  <div class="tools">
+    <button id="lang">中文/EN</button>
+    <button id="font">A+</button>
+    <button id="dark">Dark</button>
+  </div>
+</div>
+
+<!-- 面包屑导航（课程强制） -->
+<div class="bread" id="breadcrumb">首页 / 圆定理学习</div>
+
+<!-- 广告（盈利模块） -->
+<div class="ad" id="adTxt">广告位招商，广告位招商，广告位招商，广告位招商</div>
+
+<!-- 首屏 -->
+<div class="hero">
+  <h1 id="heroTitle">圆定理 · 互动几何学习</h1>
+  <p id="heroSub">动态可视化 | AI 答疑 | 游戏化练习</p>
+  <img class="circle" src="myphoto.png" alt="circle">
+  <br><br>
+  <button class="btn" onclick="startLearn()" id="startBtn">开始学习</button>
+</div>
+
+<!-- 定理卡片 -->
+<div class="box">
+  <h2 id="theoTitle">核心圆定理</h2>
+  <div class="cards">
+    <div class="card" onclick="openTheo(1)" id="c1">圆心角定理</div>
+    <div class="card" onclick="openTheo(2)" id="c2">圆周角定理</div>
+    <div class="card" onclick="openTheo(3)" id="c3">切线性质</div>
+    <div class="card" onclick="openTheo(4)" id="c4">内接四边形</div>
+  </div>
+</div>
+
+<!-- USP -->
+<div class="box" style="background:var(--card); margin:20px; border-radius:12px;">
+  <h2 id="uspTitle">平台优势</h2><br>
+  <p id="uspTxt">✅ 完全互动 | ✅ 动态演示 | ✅ AI 辅助 | ✅ 100% 免费</p>
+</div>
+
+
+<!-- 联系表单 -->
+<div class="contact">
+  <h2 id="contactTitle">联系我们</h2><br>
+  <input type="text" id="name" placeholder="姓名"><br>
+  <input type="email" id="email" placeholder="邮箱"><br>
+  <textarea id="msg" rows="4" placeholder="留言内容"></textarea><br><br>
+  <button class="btn" onclick="submitForm()" id="submitBtn">提交</button>
+</div>
+
+<!-- AI -->
+<div class="ai-btn" onclick="toggleAI()">AI</div>
+<div class="ai-panel" id="aiBox">
+  <h4 id="aiTitle">AI 答疑助手</h4>
+  <div class="ai-body" id="aiText">你好！我可以帮你解答圆定理问题～</div>
+  <input type="text" id="aiInput" placeholder="输入问题..." onkeydown="if(event.key=='Enter')sendAI()">
+  <button class="btn" style="width:100%; margin-top:10px;" onclick="sendAI()" id="aiSend">发送</button>
+</div>
+
+<!-- 定理弹窗 -->
+<div class="modal" id="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeModal()">&times;</span>
+    <h3 id="modalTitle"></h3>
+    <p id="modalDesc" style="margin-top:12px; line-height:1.6;"></p>
+  </div>
+</div>
+
+<footer id="footer">©  圆定理学习首页</footer>
+
+<script>
+// 基础导航
+function goHome(){setBread("首页"); alert("Back to Homepage");}
+function toQuiz(){
+    setBread("首页 / 测验");
+    window.location.href = "V4.1.c.html";
+}
+function toGame(){
+    setBread("首页 / 游戏");
+    window.location.href = "V4.1.b.html";
+}
+function startLearn(){alert("Start Learning");}
+function setBread(text){document.getElementById("breadcrumb").innerText = text;}
+
+// 定理数据
+const theo = {
+1:{zh:{t:"圆心角定理",d:"同圆中，相等圆心角对弧、弦、弦心距均相等。"},
+  en:{t:"Central Angle Theorem",d:"Equal central angles ⇌ equal arcs & chords."}},
+2:{zh:{t:"圆周角定理",d:"同弧圆周角 = 圆心角的一半；半圆所对圆周角为90°。"},
+  en:{t:"Circumference Angle Theorem",d:"Angle = ½ central angle; semicircle angle = 90°."}},
+3:{zh:{t:"切线性质",d:"切线垂直于过切点半径；圆外一点引两切线长度相等。"},
+  en:{t:"Tangent Properties",d:"Tangent ⊥ radius; two tangents from one point are equal."}},
+4:{zh:{t:"内接四边形",d:"圆内接四边形对角之和为180°。"},
+  en:{t:"Cyclic Quadrilateral",d:"Opposite angles sum to 180°."}}
+};
+
+// 弹窗
+function openTheo(n){
+  const isZh = document.documentElement.lang=="zh-CN";
+  const obj = isZh ? theo[n].zh : theo[n].en;
+  document.getElementById("modalTitle").innerText = obj.t;
+  document.getElementById("modalDesc").innerText = obj.d;
+  document.getElementById("modal").style.display = "flex";
+}
+function closeModal(){document.getElementById("modal").style.display="none";}
+
+// 表单
+function submitForm(){
+  const n=document.getElementById("name").value, e=document.getElementById("email").value, m=document.getElementById("msg").value;
+  const isZh = document.documentElement.lang=="zh-CN";
+  if(!n||!e||!m) return alert(isZh?"请填写完整信息":"Please fill all");
+  alert(isZh?"提交成功！":"Submitted!");
+}
+
+// 双语切换
+let isCN = true;
+document.getElementById("lang").onclick=()=>{
+  isCN = !isCN;
+  document.documentElement.lang = isCN?"zh-CN":"en";
+  document.getElementById("nav1").innerText=isCN?"首页":"Home";
+  document.getElementById("nav2").innerText=isCN?"测验":"Quiz";
+  document.getElementById("nav3").innerText=isCN?"游戏":"Game";
+  document.getElementById("breadcrumb").innerText=isCN?"首页 / 圆定理学习":"Home / Circle Theorems";
+  document.getElementById("adTxt").innerText=isCN?"广告位招商，广告位招商，广告位招商，广告位招商":"Ad space available for lease";
+  document.getElementById("heroTitle").innerText=isCN?"圆定理 · 互动几何学习":"Circle Theorems · Interactive Math";
+  document.getElementById("heroSub").innerText=isCN?"动态可视化 | AI 答疑 | 游戏化练习":"Visual | AI Helper | Game Practice";
+  document.getElementById("startBtn").innerText=isCN?"开始学习":"Start Learning";
+  document.getElementById("theoTitle").innerText=isCN?"核心圆定理":"Key Theorems";
+  document.getElementById("c1").innerText=isCN?"圆心角定理":"Central Angle";
+  document.getElementById("c2").innerText=isCN?"圆周角定理":"Circumference Angle";
+  document.getElementById("c3").innerText=isCN?"切线性质":"Tangent";
+  document.getElementById("c4").innerText=isCN?"内接四边形":"Cyclic Quad";
+  document.getElementById("uspTitle").innerText=isCN?"平台优势":"Advantages";
+  document.getElementById("uspTxt").innerText=isCN?"✅ 完全互动 | ✅ 动态演示 | ✅ AI 辅助 | ✅ 100% 免费":"✅ Interactive | ✅ Visual | ✅ AI | ✅ Free";
+  document.getElementById("contactTitle").innerText=isCN?"联系我们":"Contact Us";
+  document.getElementById("name").placeholder=isCN?"姓名":"Name";
+  document.getElementById("email").placeholder=isCN?"邮箱":"Email";
+  document.getElementById("msg").placeholder=isCN?"留言内容":"Message";
+  document.getElementById("submitBtn").innerText=isCN?"提交":"Submit";
+  document.getElementById("aiTitle").innerText=isCN?"AI 答疑助手":"AI Helper";
+  document.getElementById("aiText").innerText=isCN?"你好！我可以帮你解答圆定理问题～":"Hi! Ask me about circle theorems!";
+  document.getElementById("aiInput").placeholder=isCN?"输入问题...":"Ask a question...";
+  document.getElementById("aiSend").innerText=isCN?"发送":"Send";
+  document.getElementById("footer").innerText=isCN?"©  圆定理学习首页":"©  Circle Theorems";
+};
+
+// 字体缩放
+let fs=100;
+document.getElementById("font").onclick=()=>{fs+=10; if(fs>140)fs=100; document.body.style.fontSize=fs+"%";}
+
+// 暗黑模式
+document.getElementById("dark").onclick=()=>{
+  document.body.classList.toggle("dark");
+  document.getElementById("dark").innerText = document.body.classList.contains("dark")?"Light":"Dark";
+}
+
+// AI
+function toggleAI(){document.getElementById("aiBox").style.display = document.getElementById("aiBox").style.display=="block"?"none":"block";}
+function sendAI(){
+  const i=document.getElementById("aiInput"), t=document.getElementById("aiText");
+  const isZh=document.documentElement.lang=="zh-CN";
+  if(!i.value)return;
+  t.innerHTML+=`<br>👉 ${i.value}`;
+  t.innerHTML+=isZh?"<br><br>🤖欢迎使用我们的平台， 我已收到你的反馈！":"<br><br>🤖Welcome to our platform! I have received your feedback!";
+  i.value=""; t.scrollTop=t.scrollHeight;
+}
+</script>
+</body>
+</html>
