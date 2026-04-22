@@ -1,0 +1,1883 @@
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>圆域猎手 - GCSE圆几何游戏</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --panel-bg: #ffffff;
+            --text-color: #1e293b;
+            --border-color: #e2e8f0;
+            --border-color-rgb: 226, 232, 240;
+            --color-circle: #ef4444;
+            --color-center: #22c55e;
+            --color-outer: #f59e0b;
+            --color-line: #3b82f6;
+            --color-monster: #f43f5e;
+            --color-bullet: #fbbf24;
+            --font-size: 16px;
+            --btn-size: 56px;
+            --canvas-max-size: 800px;
+            --gap: 16px;
+            --radius: 12px;
+            --glow-blue: 0 0 20px rgba(59, 130, 246, 0.5);
+            --glow-red: 0 0 20px rgba(239, 68, 68, 0.5);
+            --glow-green: 0 0 20px rgba(34, 197, 94, 0.5);
+            --glow-yellow: 0 0 20px rgba(245, 158, 11, 0.5);
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #0f172a;
+            --panel-bg: #1e293b;
+            --text-color: #f1f5f9;
+            --border-color: #334155;
+            --border-color-rgb: 51, 65, 85;
+            --color-circle: #ef4444;
+            --color-center: #22c55e;
+            --color-outer: #f59e0b;
+            --color-line: #3b82f6;
+        }
+
+        [data-theme="dark"] body.game-page {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+        }
+
+        [data-theme="dark"] body.game-page::before {
+            background-image: 
+                linear-gradient(rgba(51, 65, 85, 0.3) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(51, 65, 85, 0.3) 1px, transparent 1px);
+        }
+
+        [data-font="small"] { --font-size: 14px; }
+        [data-font="medium"] { --font-size: 16px; }
+        [data-font="large"] { --font-size: 18px; }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif;
+            font-size: var(--font-size);
+        }
+
+        body.game-page {
+            background: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            padding: var(--gap);
+            transition: all 0.3s ease;
+            overflow-x: hidden;
+        }
+
+        body.game-page::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                linear-gradient(rgba(226, 232, 240, 0.3) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(226, 232, 240, 0.3) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        [data-theme="dark"] body.game-page::before {
+            background-image: 
+                linear-gradient(rgba(51, 65, 85, 0.3) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(51, 65, 85, 0.3) 1px, transparent 1px);
+        }
+
+        body.game-page header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: calc(var(--gap) * 1.2) calc(var(--gap) * 1.5);
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(241, 245, 249, 0.95));
+            border-radius: var(--radius);
+            margin-bottom: var(--gap);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            flex-wrap: wrap;
+            gap: var(--gap);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        [data-theme="dark"] body.game-page header {
+            background: linear-gradient(145deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.9));
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), 0 0 40px rgba(59, 130, 246, 0.1) inset;
+        }
+
+        body.game-page .header-left, body.game-page .header-center, body.game-page .header-right {
+            display: flex;
+            align-items: center;
+            gap: calc(var(--gap) * 1.5);
+        }
+
+        body.game-page .header-left {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        body.game-page .setting-icons {
+            display: flex;
+            gap: 8px;
+        }
+
+        body.game-page .setting-icon-btn {
+            width: 40px;
+            height: 40px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            background: linear-gradient(145deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.9));
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body.game-page .setting-icon-btn:hover {
+            transform: scale(1.1);
+            border-color: rgba(96, 165, 250, 0.6);
+            box-shadow: 0 0 15px rgba(96, 165, 250, 0.3);
+        }
+
+        body.game-page .setting-icon-btn.active {
+            border-color: rgba(96, 165, 250, 0.8);
+            background: linear-gradient(145deg, rgba(37, 99, 235, 0.3), rgba(59, 130, 246, 0.2));
+        }
+
+        body.game-page .status-item {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        body.game-page .status-label {
+            font-size: 0.75em;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        body.game-page .status-value {
+            font-size: 1.25em;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        [data-theme="dark"] body.game-page .status-value {
+            background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        body.game-page .exp-bar-container {
+            flex: 1;
+            min-width: 240px;
+            height: 24px;
+            background: rgba(30, 41, 59, 0.8);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        body.game-page .exp-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #2563eb 0%, #7c3aed 50%, #2563eb 100%);
+            background-size: 200% 100%;
+            width: 0%;
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: shimmer 2s infinite;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+        }
+
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        body.game-page main {
+            display: flex;
+            gap: var(--gap);
+            margin-bottom: var(--gap);
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        body.game-page .game-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        body.game-page #gameCanvas {
+            border: 2px solid rgba(59, 130, 246, 0.2);
+            border-radius: var(--radius);
+            background: linear-gradient(145deg, rgba(248, 250, 252, 0.95), rgba(241, 245, 249, 0.95));
+            max-width: 100%;
+            height: auto;
+            touch-action: none;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        [data-theme="dark"] body.game-page #gameCanvas {
+            background: linear-gradient(145deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.95));
+            border: 2px solid rgba(59, 130, 246, 0.3);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4), 0 0 60px rgba(59, 130, 246, 0.1) inset;
+        }
+
+        body.game-page .pause-btn {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 48px;
+            height: 48px;
+            border: 2px solid rgba(59, 130, 246, 0.2);
+            border-radius: 50%;
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.9), rgba(241, 245, 249, 0.9));
+            color: #1e293b;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        [data-theme="dark"] body.game-page .pause-btn {
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            background: linear-gradient(145deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.9));
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        body.game-page .pause-btn:hover {
+            background: linear-gradient(145deg, rgba(59, 130, 246, 0.2), rgba(37, 99, 235, 0.2));
+            transform: scale(1.1);
+            box-shadow: 0 6px 25px rgba(59, 130, 246, 0.3);
+            border-color: rgba(59, 130, 246, 0.6);
+        }
+
+        [data-theme="dark"] body.game-page .pause-btn:hover {
+            background: linear-gradient(145deg, rgba(30, 41, 59, 0.9), rgba(59, 130, 246, 0.3));
+            box-shadow: 0 6px 25px rgba(59, 130, 246, 0.4);
+        }
+
+        body.game-page .pause-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        body.game-page .pause-icon {
+            font-family: monospace;
+            font-weight: bold;
+        }
+
+        body.game-page aside {
+            display: flex;
+            flex-direction: column;
+            gap: var(--gap);
+            min-width: 240px;
+            max-width: 340px;
+            flex: 1;
+        }
+
+        body.game-page .panel-section {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(241, 245, 249, 0.95));
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: var(--radius);
+            padding: calc(var(--gap) * 1.2);
+            display: flex;
+            flex-direction: column;
+            gap: var(--gap);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        [data-theme="dark"] body.game-page .panel-section {
+            background: linear-gradient(145deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.9));
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        body.game-page .panel-title {
+            font-weight: 700;
+            text-align: center;
+            border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+            padding-bottom: var(--gap);
+            font-size: 1.1em;
+            color: #1e293b;
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 0.5px;
+        }
+
+        body.game-page .point-buttons {
+            display: flex;
+            justify-content: space-around;
+            gap: var(--gap);
+        }
+
+        body.game-page .point-btn-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        body.game-page .point-btn {
+            width: var(--btn-size);
+            height: var(--btn-size);
+            border: 3px solid transparent;
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        body.game-page .point-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        body.game-page .point-label {
+            font-size: 0.75em;
+            text-align: center;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        body.game-page .point-btn:hover, body.game-page .point-btn.active {
+            transform: translateY(-4px) scale(1.08);
+        }
+
+        body.game-page .point-btn:hover::before, body.game-page .point-btn.active::before {
+            opacity: 1;
+        }
+
+        body.game-page #circlePointBtn {
+            background: linear-gradient(145deg, #ef4444, #dc2626);
+            border-radius: 50%;
+            box-shadow: var(--glow-red);
+        }
+
+        body.game-page #circlePointBtn:hover, body.game-page #circlePointBtn.active {
+            box-shadow: 0 0 30px rgba(239, 68, 68, 0.8), 0 8px 25px rgba(0, 0, 0, 0.3);
+            border-color: rgba(239, 68, 68, 0.5);
+        }
+
+        body.game-page #centerPointBtn {
+            background: linear-gradient(145deg, #22c55e, #16a34a);
+            border-radius: 8px;
+            box-shadow: var(--glow-green);
+        }
+
+        body.game-page #centerPointBtn:hover, body.game-page #centerPointBtn.active {
+            box-shadow: 0 0 30px rgba(34, 197, 94, 0.8), 0 8px 25px rgba(0, 0, 0, 0.3);
+            border-color: rgba(34, 197, 94, 0.5);
+        }
+
+        body.game-page #outerPointBtn {
+            background: linear-gradient(145deg, #f59e0b, #d97706);
+            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+            box-shadow: var(--glow-yellow);
+        }
+
+        body.game-page #outerPointBtn:hover, body.game-page #outerPointBtn.active {
+            box-shadow: 0 0 30px rgba(245, 158, 11, 0.8), 0 8px 25px rgba(0, 0, 0, 0.3);
+            border-color: rgba(245, 158, 11, 0.5);
+        }
+
+        body.game-page .point-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+            filter: grayscale(0.5);
+        }
+
+        body.game-page .point-count {
+            text-align: center;
+            padding: 12px;
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 8px;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            font-weight: 600;
+        }
+
+        body.game-page .point-count span {
+            margin: 0 8px;
+        }
+
+        body.game-page .func-btn {
+            padding: 14px 20px;
+            border: 2px solid transparent;
+            border-radius: var(--radius);
+            background: linear-gradient(145deg, #2563eb, #1d4ed8);
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+        }
+
+        body.game-page .func-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        body.game-page .func-btn:hover::before {
+            left: 100%;
+        }
+
+        body.game-page .func-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.5);
+            border-color: rgba(96, 165, 250, 0.5);
+        }
+
+        body.game-page .func-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+            background: linear-gradient(145deg, #475569, #334155);
+        }
+
+        body.game-page .func-btn.danger {
+            background: linear-gradient(145deg, #dc2626, #b91c1c);
+            box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
+        }
+
+        body.game-page .func-btn.danger:hover {
+            box-shadow: 0 8px 25px rgba(220, 38, 38, 0.5);
+        }
+
+        body.game-page .talent-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 220px;
+            overflow-y: auto;
+            padding: 4px;
+        }
+
+        body.game-page .talent-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        body.game-page .talent-list::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: 3px;
+        }
+
+        body.game-page .talent-list::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #3b82f6, #7c3aed);
+            border-radius: 3px;
+        }
+
+        body.game-page .talent-item {
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            background: rgba(15, 23, 42, 0.5);
+            font-size: 0.875em;
+            transition: all 0.3s ease;
+        }
+
+        body.game-page .talent-item.locked {
+            opacity: 0.4;
+            filter: grayscale(0.5);
+        }
+
+        body.game-page .talent-item.unlocked {
+            border-color: rgba(34, 197, 94, 0.5);
+            background: rgba(34, 197, 94, 0.1);
+            animation: pulse-glow 2s infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 10px rgba(34, 197, 94, 0.2); }
+            50% { box-shadow: 0 0 20px rgba(34, 197, 94, 0.4); }
+        }
+
+        body.game-page .talent-item strong {
+            font-size: 0.95em;
+            background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        body.game-page .talent-item p {
+            margin-top: 4px;
+            opacity: 0.7;
+            font-size: 0.9em;
+            line-height: 1.4;
+        }
+
+        body.game-page .bread {
+            background: var(--card);
+            padding: 12px 40px;
+            font-size: 14px;
+            color: var(--text-light);
+            border-bottom: 1px solid var(--border);
+            text-align: left;
+        }
+        body.game-page .bread a { color:var(--pri); text-decoration:none; }
+        body.game-page .bread a:hover { text-decoration:underline; }
+        body.game-page .bread .current { color:var(--pri); font-weight:600; }
+
+        body.game-page footer {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(241, 245, 249, 0.95));
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: var(--radius);
+            padding: calc(var(--gap) * 1.2);
+            margin-bottom: var(--gap);
+            min-height: 70px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        [data-theme="dark"] body.game-page footer {
+            background: linear-gradient(145deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.9));
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        body.game-page #theoremLabel {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        body.game-page .theorem-tag {
+            padding: 8px 14px;
+            border-radius: 8px;
+            background: linear-gradient(145deg, rgba(37, 99, 235, 0.15), rgba(59, 130, 246, 0.1));
+            border: 1px solid rgba(37, 99, 235, 0.4);
+            font-size: 0.875em;
+            font-weight: 600;
+            color: #1e40af;
+            transition: all 0.3s ease;
+            animation: float-in 0.3s ease-out;
+        }
+
+        [data-theme="dark"] body.game-page .theorem-tag {
+            color: #93c5fd;
+        }
+
+        @keyframes float-in {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        body.game-page .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(15, 23, 42, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: var(--gap);
+            backdrop-filter: blur(5px);
+            animation: modal-fade-in 0.3s ease-out;
+        }
+
+        @keyframes modal-fade-in {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        body.game-page .modal.active {
+            display: flex;
+        }
+        
+        body.game-page .game-over-content {
+            text-align: center;
+            padding: 60px 80px;
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 20px;
+            border: 3px solid #e94560;
+            box-shadow: 0 0 60px rgba(233, 69, 96, 0.5);
+        }
+        
+        body.game-page .game-over-title {
+            font-size: 3em;
+            font-weight: bold;
+            color: #e94560;
+            text-shadow: 0 0 20px rgba(233, 69, 96, 0.8);
+            margin-bottom: 40px;
+            letter-spacing: 8px;
+        }
+        
+        body.game-page .game-over-stats {
+            margin-bottom: 50px;
+        }
+        
+        body.game-page .stat-item {
+            font-size: 1.5em;
+            color: #eee;
+            margin: 20px 0;
+            letter-spacing: 2px;
+        }
+        
+        body.game-page .stat-item span {
+            color: #ffd700;
+            font-weight: bold;
+        }
+        
+        body.game-page .game-over-btn {
+            padding: 18px 60px;
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #fff;
+            background: linear-gradient(135deg, #e94560 0%, #c31432 100%);
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 30px rgba(233, 69, 96, 0.4);
+            letter-spacing: 4px;
+        }
+        
+        body.game-page .game-over-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(233, 69, 96, 0.6);
+        }
+
+        body.game-page .modal-content {
+            background: linear-gradient(145deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.95));
+            border-radius: 20px;
+            padding: calc(var(--gap) * 2.5);
+            max-width: 550px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: var(--gap);
+            border: 2px solid rgba(59, 130, 246, 0.3);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 80px rgba(59, 130, 246, 0.1);
+            animation: modal-scale-in 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes modal-scale-in {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        body.game-page .modal-title {
+            font-size: 1.6em;
+            font-weight: 800;
+            text-align: center;
+            border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+            padding-bottom: var(--gap);
+            background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 50%, #f472b6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 1px;
+        }
+
+        body.game-page .modal-buttons {
+            display: flex;
+            gap: var(--gap);
+            justify-content: center;
+            margin-top: var(--gap);
+        }
+
+        body.game-page .levelup-options {
+            display: flex;
+            gap: var(--gap);
+            justify-content: space-around;
+            flex-wrap: wrap;
+        }
+
+        body.game-page .levelup-option {
+            flex: 1;
+            min-width: 130px;
+            padding: calc(var(--gap) * 1.2);
+            border: 2px solid rgba(59, 130, 246, 0.2);
+            border-radius: 16px;
+            background: linear-gradient(145deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.9));
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        body.game-page .levelup-option::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(96, 165, 250, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        body.game-page .levelup-option:hover {
+            transform: translateY(-5px) scale(1.02);
+            border-color: rgba(96, 165, 250, 0.6);
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
+        }
+
+        body.game-page .levelup-option:hover::before {
+            left: 100%;
+        }
+
+        body.game-page .levelup-option.talent {
+            border-color: rgba(168, 85, 247, 0.3);
+        }
+
+        body.game-page .levelup-option.talent:hover {
+            border-color: rgba(168, 85, 247, 0.7);
+            box-shadow: 0 10px 30px rgba(168, 85, 247, 0.3);
+        }
+
+        body.game-page .option-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8em;
+        }
+
+        body.game-page .option-name {
+            font-weight: 700;
+            font-size: 1.1em;
+            text-align: center;
+        }
+
+        body.game-page .option-desc {
+            font-size: 0.85em;
+            opacity: 0.7;
+            text-align: center;
+            line-height: 1.3;
+        }
+
+        body.game-page .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+        }
+
+        body.game-page .setting-switch {
+            width: 48px;
+            height: 24px;
+            background-color: var(--border-color);
+            border-radius: 12px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        body.game-page .setting-switch.active {
+            background-color: #4caf50;
+        }
+
+        body.game-page .setting-switch::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: white;
+            top: 2px;
+            left: 2px;
+            transition: all 0.2s ease;
+        }
+
+        body.game-page .setting-switch.active::after {
+            left: 26px;
+        }
+
+        body.game-page .setting-select {
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+    </style>
+</head>
+<body class="game-page">
+    <!-- 导航栏 -->
+    <div class="navbar">
+        <div class="logo" onclick="location.reload()">Circle Theorems</div>
+        <div class="nav">
+            <a onclick="goHome()" id="nav1">首页</a>
+            <a onclick="toQuiz()" id="nav2">测验</a>
+            <a onclick="toGame()" id="nav3" style="color:var(--pri);">游戏</a>
+        </div>
+        <div class="tools">
+            <button id="lang" title="切换语言">中文/EN</button>
+            <button id="colorblind" title="色盲友好模式">👁️</button>
+            <button id="dark" title="深色模式">🌙</button>
+        </div>
+    </div>
+
+    <!-- 面包屑导航 -->
+    <div class="bread">
+        <a href="V4.2.a.html">首页</a> &gt; <span class="current">游戏</span>
+    </div>
+
+    <header>
+        <div class="header-left">
+            <div class="status-item">
+                <span class="status-label" data-i18n="centerHealth">圆心血量</span>
+                <span id="centerHealthText" class="status-value">3</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label" data-i18n="level">等级</span>
+                <span id="levelText" class="status-value">1</span>
+            </div>
+            <div class="exp-bar-container">
+                <div class="exp-bar" id="expBar"></div>
+            </div>
+        </div>
+        <div class="header-center">
+            <div class="status-item">
+                <span class="status-label" data-i18n="score">分数</span>
+                <span id="scoreText" class="status-value">0</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label" data-i18n="wave">波次</span>
+                <span id="waveText" class="status-value">1</span>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="setting-icons">
+                <button class="setting-icon-btn" id="sfxBtn" title="音效" aria-label="音效">
+                    <span id="sfxIcon">🔊</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="game-container">
+            <canvas id="gameCanvas" width="800" height="800"></canvas>
+            <button class="pause-btn" id="pauseBtn" disabled>
+                <span class="pause-icon">❚❚</span>
+            </button>
+        </div>
+        <aside>
+            <div class="panel-section">
+                <div class="panel-title" data-i18n="pointSelect">选择放置点</div>
+                <div class="point-buttons">
+                    <div class="point-btn-container">
+                        <button class="point-btn" id="circlePointBtn" aria-label="圆周点"></button>
+                        <span class="point-label" data-i18n="circlePoint">圆周点</span>
+                    </div>
+                    <div class="point-btn-container">
+                        <button class="point-btn" id="centerPointBtn" aria-label="圆心点"></button>
+                        <span class="point-label" data-i18n="centerPoint">圆心点</span>
+                    </div>
+                    <div class="point-btn-container">
+                        <button class="point-btn" id="outerPointBtn" aria-label="圆外点"></button>
+                        <span class="point-label" data-i18n="outerPoint">圆外点</span>
+                    </div>
+                </div>
+                <div class="point-count">
+                    <span data-i18n="pointCount">点数库存：</span>
+                    <span id="circleCount">0</span> | <span id="centerCount">0</span> | <span id="outerCount">0</span>
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <button class="func-btn" id="startBtn" data-i18n="restart">重新开始</button>
+                <button class="func-btn" id="placeDefenseBtn" disabled data-i18n="placeDefense">放置防御点</button>
+            </div>
+
+            <div class="panel-section">
+                <div class="panel-title" data-i18n="selectedTalents">已选择天赋</div>
+                <div class="talent-list" id="selectedTalentsList"></div>
+            </div>
+        </aside>
+    </main>
+
+    <footer>
+        <div id="theoremLabel">
+            <span data-i18n="noTheorem">暂无触发的定理，放置点并闭合几何图形以激活</span>
+        </div>
+    </footer>
+
+    <div class="modal" id="startModal">
+        <div class="modal-content">
+            <div class="modal-title">放置防御点生成攻击，守护圆心！</div>
+            <p>点击"放置防御点"开始游戏</p>
+            <div class="modal-buttons">
+                <button class="func-btn" id="confirmStartBtn">开始游戏</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="levelUpModal">
+        <div class="modal-content">
+            <div class="modal-title" data-i18n="levelUp">升级了！</div>
+            <div class="levelup-options">
+                <div class="levelup-option" id="circleOption">
+                    <div class="option-icon" style="background-color: var(--color-circle); border-radius: 50%;"></div>
+                    <span data-i18n="circlePoint">圆周点</span>
+                </div>
+                <div class="levelup-option" id="centerOption">
+                    <div class="option-icon" style="background-color: var(--color-center); border-radius: 4px;"></div>
+                    <span data-i18n="centerPoint">圆心点</span>
+                </div>
+                <div class="levelup-option" id="outerOption">
+                    <div class="option-icon" style="background-color: var(--color-outer); clip-path: polygon(50% 0%, 0% 100%, 100% 100%);"></div>
+                    <span data-i18n="outerPoint">圆外点</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="placeDefenseModal">
+        <div class="modal-content">
+            <div class="modal-title" data-i18n="placeDefense">放置防御点</div>
+            <p data-i18n="needMorePoints">需要至少3个点才能开始防御！</p>
+            <p id="currentPointsText">当前点数：0</p>
+            <div class="modal-buttons">
+                <button class="func-btn" id="cancelDefenseBtn" data-i18n="cancel">取消并返还</button>
+                <button class="func-btn" id="continueAddBtn" data-i18n="continue">继续添加</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="gameOverModal">
+        <div class="game-over-content">
+            <div class="game-over-title">游戏结束</div>
+            <div class="game-over-stats">
+                <div class="stat-item">最终分数：<span id="finalScoreText">0</span></div>
+                <div class="stat-item">坚持波次：<span id="finalWaveText">0</span></div>
+                <div class="stat-item">最高分：<span id="highScoreText">0</span></div>
+            </div>
+            <button class="game-over-btn" id="restartBtn">重新开始</button>
+        </div>
+    </div>
+
+    <div class="modal" id="settingModal">
+        <div class="modal-content">
+            <div class="modal-title" data-i18n="setting">设置</div>
+            <div class="setting-item">
+                <span data-i18n="language">语言</span>
+                <select class="setting-select" id="languageSelect">
+                    <option value="zh">中文</option>
+                    <option value="en">English</option>
+                </select>
+            </div>
+            <div class="setting-item">
+                <span data-i18n="darkMode">深色模式</span>
+                <div class="setting-switch" id="darkModeSwitch"></div>
+            </div>
+            <div class="setting-item">
+                <span data-i18n="fontSize">字体大小</span>
+                <select class="setting-select" id="fontSizeSelect">
+                    <option value="small">小</option>
+                    <option value="medium" selected>中</option>
+                    <option value="large">大</option>
+                </select>
+            </div>
+            <div class="setting-item">
+                <span data-i18n="sfx">音效</span>
+                <div class="setting-switch active" id="sfxSwitch"></div>
+            </div>
+            <div class="modal-buttons">
+                <button class="func-btn" id="closeSettingBtn" data-i18n="confirm">确认</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const gameState = {
+            status: 'idle',
+            canvas: { width: 800, height: 800, centerX: 400, centerY: 400, radius: 266 },
+            player: {
+                level: 1, exp: 0, expToNextLevel: 100,
+                points: { circle: 1, center: 1, outer: 1 },
+                unlockedTalents: [], baseDamageBonus: 0, talentCentralAngle: !1, talentSemicircle: !1, talentQuadrilateral: !1, talentTangent: !1, talentDualTangent: !1, talentChordBeam: !1, talentChainLightning: !1, talentExplosion: !1
+            },
+            geometry: {
+                placedPoints: [], maxPoints: 5, lines: [], activeTheorems: [],
+                isClosed: false, selectedPointType: 'circle'
+            },
+            savedGeometries: [], // 保存已闭合的几何图形
+            combat: {
+                baseDamage: 10, monsters: [], rings: [], wave: 1, score: 0,
+                lastWaveTime: 0, waveInterval: 10000, lastBulletTime: 0, bulletInterval: 1000
+            },
+            settings: { language: 'zh', darkMode: false, fontSize: 'medium', sfx: true },
+            isPlacingMode: false,
+            centerHealth: 3,
+            lastHitTime: 0
+        };
+
+        const i18n = {
+            zh: {
+                level: '等级', score: '分数', wave: '波次', setting: '设置', pointSelect: '选择放置点',
+                circlePoint: '圆周点', centerPoint: '圆心点', outerPoint: '圆外点', pointCount: '点数库存：',
+                startGame: '开始游戏', pause: '暂停', resume: '继续', closeShape: '几何闭合', clearPoints: '清除所有点',
+                placeDefense: '放置防御点', confirmPlacement: '确认放置', needMorePoints: '需要至少3个点才能开始防御！',
+                cancel: '取消并返还', continue: '继续添加', clickToPlaceDefense: '点击"放置防御点"开始放置',
+                talent: '天赋树', noTheorem: '暂无触发的定理', gameTitle: '圆域猎手',
+                gameDesc: '放置圆心点/圆周点/圆外点，触发GCSE圆定理生成攻击，守护圆心！',
+                gameTip: '圆心点仅可放中心，圆周点仅可放圆上，圆外点仅可放圆外',
+                levelUp: '升级了！', levelUpDesc: '选择一种点数', gameOver: '游戏结束',
+                finalScore: '最终分数：', finalWave: '坚持波次：', highScore: '最高分：',
+                restart: '重新开始', language: '语言', darkMode: '深色模式',
+                fontSize: '字体大小', sfx: '音效', confirm: '确认', centerHealth: '圆心血量',
+                selectedTalents: '已选择天赋',
+                theorem1: '圆心角=2×圆周角', theorem2: '半圆直角90°', theorem3: '内接四边形对角互补',
+                theorem4: '切线⊥半径', theorem5: '双切线等长', theorem6: '弦垂直平分线过圆心',
+                theorem7: '等弦等角', theorem8: '相交弦定理'
+            },
+            en: {
+                level: 'Level', score: 'Score', wave: 'Wave', setting: 'Setting', pointSelect: 'Select Point',
+                circlePoint: 'Circle', centerPoint: 'Center', outerPoint: 'Outer', pointCount: 'Points: ',
+                startGame: 'Start', pause: 'Pause', resume: 'Resume', closeShape: 'Close', clearPoints: 'Clear',
+                placeDefense: 'Place Defense', confirmPlacement: 'Confirm Placement', needMorePoints: 'Need at least 3 points to start defense!',
+                cancel: 'Cancel & Return', continue: 'Continue Adding', clickToPlaceDefense: 'Click "Place Defense" to start',
+                talent: 'Talents', noTheorem: 'No Theorem', gameTitle: 'Circle Hunter',
+                gameDesc: 'Place Center/Circle/Outer points, trigger GCSE theorems to attack!',
+                gameTip: 'Center: only middle | Circle: only edge | Outer: only outside',
+                levelUp: 'Level Up!', levelUpDesc: 'Choose a point', gameOver: 'Game Over',
+                finalScore: 'Score: ', finalWave: 'Wave: ', highScore: 'High Score: ',
+                restart: 'Restart', language: 'Language', darkMode: 'Dark',
+                fontSize: 'Font', sfx: 'SFX', confirm: 'OK', centerHealth: 'Core HP',
+                selectedTalents: 'Selected Talents',
+                theorem1: 'Central=2×Circumference', theorem2: 'Semicircle 90°', theorem3: 'Cyclic Quadrilateral',
+                theorem4: 'Tangent⊥Radius', theorem5: 'Equal Tangents', theorem6: 'Chord Bisector',
+                theorem7: 'Equal Chords', theorem8: 'Intersect Chords'
+            }
+        };
+
+        const talentTree = [
+            {id:'t1',name:{zh:'圆周角定理',en:'Central Angle'},desc:{zh:'圆周角触发额外弱冲击波',en:'Circumference angles trigger extra rings'},level:5,effect:s=>s.player.talentCentralAngle=!0},
+            {id:'t2',name:{zh:'半圆定理',en:'Semicircle'},desc:{zh:'形成直径时产生强力扩散波',en:'Diameter triggers powerful expanding wave'},level:10,effect:s=>s.player.talentSemicircle=!0},
+            {id:'t3',name:{zh:'内接四边形',en:'Cyclic Quad'},desc:{zh:'四角形激活时全体怪物受到脉冲伤害',en:'Quadrilateral pulses damage all monsters'},level:15,effect:s=>s.player.talentQuadrilateral=!0},
+            {id:'t4',name:{zh:'切线定理',en:'Tangent'},desc:{zh:'切线位置触发追踪弹',en:'Tangent positions launch tracking bullets'},level:20,effect:s=>s.player.talentTangent=!0},
+            {id:'t5',name:{zh:'双切线定理',en:'Dual Tangent'},desc:{zh:'双切线触发镜像攻击',en:'Dual tangents trigger mirror attack'},level:25,effect:s=>s.player.talentDualTangent=!0},
+            {id:'t6',name:{zh:'弦心距定理',en:'Chord Distance'},desc:{zh:'弦中点连线发射穿透光束',en:'Chord midpoints fire piercing beams'},level:30,effect:s=>s.player.talentChordBeam=!0},
+            {id:'t7',name:{zh:'等弦定理',en:'Equal Chord'},desc:{zh:'等弦触发链式闪电',en:'Equal chords trigger chain lightning'},level:35,effect:s=>s.player.talentChainLightning=!0},
+            {id:'t8',name:{zh:'相交弦定理',en:'Intersecting Chord'},desc:{zh:'线段相交时产生爆炸',en:'Intersecting lines cause explosions'},level:40,effect:s=>s.player.talentExplosion=!0},
+            {id:'t9',name:{zh:'攻速提升',en:'Attack Speed'},desc:{zh:'攻击间隔缩短20%',en:'Attack interval reduced by 20%'},level:5,effect:s=>s.combat.bulletInterval=Math.floor(s.combat.bulletInterval*0.8)},
+            {id:'t10',name:{zh:'伤害提升',en:'Damage Up'},desc:{zh:'基础伤害+3',en:'Base damage +3'},level:5,effect:s=>s.player.baseDamageBonus=(s.player.baseDamageBonus||0)+3}
+        ];
+
+        function getDistance(x1,y1,x2,y2){return Math.hypot(x2-x1,y2-y1)}
+        function getTangentPoints(ox,oy,cx,cy,r){const dx=ox-cx,dy=oy-cy,d2=dx*dx+dy*dy,r2=r*r;if(d2<r2)return[];const s=Math.sqrt(d2-r2);return[{x:cx+(r2*dx-r*dy*s)/d2,y:cy+(r2*dy+r*dx*s)/d2},{x:cx+(r2*dx+r*dy*s)/d2,y:cy+(r2*dy-r*dx*s)/d2}]}
+        function isPointOnLine(px,py,x1,y1,x2,y2,t=10){const d=Math.abs((y2-y1)*px-(x2-x1)*py+x2*y1-y2*x1)/Math.hypot(y2-y1,x2-x1);if(d>t)return!1;const mx=Math.min(x1,x2)-t,xx=Math.max(x1,x2)+t,my=Math.min(y1,y2)-t,xy=Math.max(y1,y2)+t;return px>=mx&&px<=xx&&py>=my&&py<=xy}
+        function getNearestMonster(x,y){if(!gameState.combat.monsters.length)return null;let n=null,m=Infinity;gameState.combat.monsters.forEach(mo=>{const d=getDistance(x,y,mo.x,mo.y);if(d<m){m=d;n=mo}});return n}
+
+        function playSound(f,d){if(!gameState.settings.sfx)return;const a=new AudioContext();const o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.frequency.value=f;g.gain.setValueAtTime(0.3,a.currentTime);g.gain.exponentialRampToValueAtTime(0.01,a.currentTime+d);o.start();o.stop(a.currentTime+d)}
+        const sounds={click:()=>playSound(440,0.1),place:()=>playSound(880,0.15),close:()=>playSound(660,0.2),kill:()=>playSound(220,0.1),level:()=>playSound(1100,0.3)};
+
+        function applyLanguage(){const l=gameState.settings.language;document.querySelectorAll('[data-i18n]').forEach(e=>e.textContent=i18n[l][e.dataset.i18n])}
+        function applySettings(){document.documentElement.setAttribute('data-theme',gameState.settings.darkMode?'dark':'light');document.documentElement.setAttribute('data-font',gameState.settings.fontSize);applyLanguage();saveSettings()}
+        function saveSettings(){localStorage.setItem('ch',JSON.stringify(gameState.settings))}
+        function loadSettings(){const s=localStorage.getItem('ch');if(s){gameState.settings=JSON.parse(s);document.getElementById('languageSelect').value=gameState.settings.language;document.getElementById('darkModeSwitch').classList.toggle('active',gameState.settings.darkMode);document.getElementById('fontSizeSelect').value=gameState.settings.fontSize;document.getElementById('sfxSwitch').classList.toggle('active',gameState.settings.sfx)}applySettings();updateSettingButtons()}
+
+        // 状态同步 - 使用sessionStorage
+        function getSettings() {
+            return {
+                isCN: sessionStorage.getItem('lang') === 'cn',
+                colorblindMode: sessionStorage.getItem('colorblindMode') === 'true',
+                darkMode: sessionStorage.getItem('darkMode') === 'true'
+            };
+        }
+
+        function saveSettings(settings) {
+            sessionStorage.setItem('lang', settings.isCN ? 'cn' : 'en');
+            sessionStorage.setItem('colorblindMode', settings.colorblindMode ? 'true' : 'false');
+            sessionStorage.setItem('darkMode', settings.darkMode ? 'true' : 'false');
+        }
+
+        function applySettings() {
+            const s = getSettings();
+            isLangCN = s.isCN;
+            if (s.colorblindMode) {
+                document.body.classList.add('colorblind');
+                document.getElementById("colorblind").style.background = "linear-gradient(135deg, rgba(255,170,0,0.3), rgba(255,204,0,0.3))";
+            }
+            if (s.darkMode) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+            gameState.settings.language = s.isCN ? 'zh' : 'en';
+            gameState.settings.darkMode = s.darkMode;
+            applyLanguage();
+            updateNavUI();
+        }
+
+        function updateNavUI() {
+            document.getElementById("lang").innerText = isLangCN ? "EN/中文" : "中文/EN";
+            document.getElementById("nav1").innerText = isLangCN ? "首页" : "Home";
+            document.getElementById("nav2").innerText = isLangCN ? "测验" : "Quiz";
+            document.getElementById("nav3").innerText = isLangCN ? "游戏" : "Game";
+            document.getElementById("dark").innerText = document.documentElement.getAttribute('data-theme') === 'dark' ? "☀️" : "🌙";
+        }
+
+        // 导航栏功能
+        let isLangCN = false;
+
+        document.getElementById("lang").onclick = () => {
+            isLangCN = !isLangCN;
+            document.documentElement.lang = isLangCN ? "zh-CN" : "en";
+            saveSettings({isCN: isLangCN, colorblindMode: document.body.classList.contains('colorblind'), darkMode: document.documentElement.getAttribute('data-theme') === 'dark'});
+            updateNavUI();
+            gameState.settings.language = isLangCN ? 'zh' : 'en';
+            applyLanguage();
+            saveSettings();
+        };
+
+        document.getElementById("colorblind").onclick = () => {
+            document.body.classList.toggle("colorblind");
+            const isColorblind = document.body.classList.contains("colorblind");
+            document.getElementById("colorblind").style.background = isColorblind ? "linear-gradient(135deg, rgba(255,170,0,0.3), rgba(255,204,0,0.3))" : "";
+            saveSettings({isCN: isLangCN, colorblindMode: isColorblind, darkMode: document.documentElement.getAttribute('data-theme') === 'dark'});
+        };
+
+        document.getElementById("dark").onclick = () => {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            const newDark = !isDark;
+            document.documentElement.setAttribute('data-theme', newDark ? 'dark' : 'light');
+            gameState.settings.darkMode = newDark;
+            saveSettings();
+            saveSettings({isCN: isLangCN, colorblindMode: document.body.classList.contains('colorblind'), darkMode: newDark});
+            updateNavUI();
+        };
+
+        // 页面加载时应用保存的设置
+        applySettings();
+
+        function goHome(){window.location.href='V4.2.a.html'}
+        function toQuiz(){window.location.href='V4.1.c.html'}
+        function toGame(){window.location.href='V4.1.b.html'}
+
+        class Point{constructor(x,y,t){this.x=x;this.y=y;this.type=t}draw(ctx){ctx.beginPath();switch(this.type){case'circle':ctx.arc(this.x,this.y,8,0,Math.PI*2);ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--color-circle');break;case'center':ctx.rect(this.x-6,this.y-6,12,12);ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--color-center');break;case'outer':ctx.moveTo(this.x,this.y-8);ctx.lineTo(this.x-8,this.y+8);ctx.lineTo(this.x+8,this.y+8);ctx.closePath();ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--color-outer');break;}ctx.fill()}}
+        class Line{constructor(x1,y1,x2,y2,t){this.x1=x1;this.y1=y1;this.x2=x2;this.y2=y2;this.type=t}draw(ctx){ctx.beginPath();ctx.moveTo(this.x1,this.y1);ctx.lineTo(this.x2,this.y2);ctx.strokeStyle='var(--color-line)';ctx.lineWidth=3;ctx.stroke()}}
+        class Monster{constructor(x,y,t,w,isElite){this.x=x;this.y=y;this.type=t;this.wave=w;this.isElite=isElite;this.hp=(isElite?30:20)+(w-1)*2.5;this.speed=0.5;this.r=8;this.lineDamageCooldown={};this.lastBulletDamageTime=0}move(){const {centerX,centerY}=gameState.canvas;const dx=centerX-this.x,dy=centerY-this.y,d=Math.hypot(dx,dy);if(d)this.x+=dx/d*this.speed,this.y+=dy/d*this.speed}hit(d){this.hp-=d;return this.hp<=0}canTakeLineDamage(lineId,now){if(!this.lineDamageCooldown[lineId]||now-this.lineDamageCooldown[lineId]>=1000){this.lineDamageCooldown[lineId]=now;return!0}return!1}draw(ctx){const maxHp=this.isElite?30+2.5*(this.wave-1):20+2.5*(this.wave-1);ctx.beginPath();ctx.arc(this.x,this.y,this.r,0,Math.PI*2);ctx.fillStyle=this.isElite?'#ffcc00':'var(--color-monster)';ctx.fill();ctx.fillStyle='red';ctx.fillRect(this.x-this.r,this.y-this.r-5,this.r*2*(this.hp/maxHp),3)}}
+        class Ring{constructor(x,y,r,damage=5){this.x=x;this.y=y;this.r=r;this.maxR=r;this.alpha=1;this.damage=damage}update(){this.r+=8;this.alpha-=0.08;return this.alpha>0}draw(ctx){ctx.beginPath();ctx.arc(this.x,this.y,this.r,0,Math.PI*2);ctx.strokeStyle=`rgba(255,100,100,${this.alpha})`;ctx.lineWidth=4;ctx.stroke()}}
+
+        const canvas=document.getElementById('gameCanvas');const ctx=canvas.getContext('2d');let anim=null;
+
+        function updateUI(){
+            document.getElementById('centerHealthText').textContent=gameState.centerHealth;
+            document.getElementById('levelText').textContent=gameState.player.level;
+            document.getElementById('scoreText').textContent=gameState.combat.score;
+            document.getElementById('waveText').textContent=gameState.combat.wave;
+            document.getElementById('expBar').style.width=Math.min((gameState.player.exp/gameState.player.expToNextLevel)*100,100)+'%';
+            document.getElementById('circleCount').textContent=gameState.player.points.circle;
+            document.getElementById('centerCount').textContent=gameState.player.points.center;
+            document.getElementById('outerCount').textContent=gameState.player.points.outer;
+            
+            const full=gameState.geometry.placedPoints.length>=gameState.geometry.maxPoints;
+            const isPlacing = gameState.isPlacingMode;
+            
+            // 只有在放置模式下才能放置点
+            document.getElementById('circlePointBtn').disabled=!isPlacing||gameState.player.points.circle<=0||full;
+            document.getElementById('centerPointBtn').disabled=!isPlacing||gameState.player.points.center<=0||full;
+            document.getElementById('outerPointBtn').disabled=!isPlacing||gameState.player.points.outer<=0||full;
+            
+            const totalPoints = gameState.player.points.circle + gameState.player.points.center + gameState.player.points.outer;
+
+            document.getElementById('pauseBtn').disabled=gameState.status!=='playing'&&gameState.status!=='paused';
+            
+            // 放置防御点按钮逻辑
+            const placeDefenseBtn = document.getElementById('placeDefenseBtn');
+            if (gameState.isPlacingMode) {
+                placeDefenseBtn.textContent = i18n[gameState.settings.language].confirmPlacement;
+                placeDefenseBtn.disabled = false;
+            } else {
+                placeDefenseBtn.textContent = i18n[gameState.settings.language].placeDefense;
+                placeDefenseBtn.disabled = totalPoints < 3;
+            }
+            
+            const lab=document.getElementById('theoremLabel');
+            lab.innerHTML=gameState.geometry.activeTheorems.length?gameState.geometry.activeTheorems.map(t=>`<span class="theorem-tag">${i18n[gameState.settings.language][t.id]}</span>`).join(''):`<span data-i18n="noTheorem">${i18n[gameState.settings.language].noTheorem}</span>`;
+            
+            // 显示已选择的天赋
+            const selectedTalentsList = document.getElementById('selectedTalentsList');
+            if (gameState.player.selectedTalents && gameState.player.selectedTalents.length > 0) {
+                selectedTalentsList.innerHTML = gameState.player.selectedTalents.map(t => `
+                    <div class="talent-item unlocked">
+                        <strong>${t.name[gameState.settings.language]}</strong>
+                        <p>${t.desc[gameState.settings.language]}</p>
+                    </div>
+                `).join('');
+            } else {
+                selectedTalentsList.innerHTML = '<p style="text-align: center; color: #666;">暂无选择的天赋</p>';
+            }
+        }
+
+        function draw(){
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            const {centerX,centerY,radius}=gameState.canvas;
+            ctx.beginPath();ctx.arc(centerX,centerY,radius,0,Math.PI*2);ctx.strokeStyle='var(--text-color)';ctx.lineWidth=2;ctx.stroke();
+            ctx.beginPath();ctx.arc(centerX,centerY,6,0,Math.PI*2);ctx.fillStyle='var(--color-center)';ctx.fill();
+            
+            // 绘制所有保存的几何图形
+            gameState.savedGeometries.forEach(geometry => {
+                geometry.lines.forEach(l=>l.draw(ctx));
+                geometry.placedPoints.forEach(p=>p.draw(ctx));
+            });
+            
+            // 绘制当前正在编辑的几何图形
+            gameState.geometry.lines.forEach(l=>l.draw(ctx));
+            gameState.geometry.placedPoints.forEach(p=>p.draw(ctx));
+            
+            gameState.combat.monsters.forEach(m=>m.draw(ctx));
+            gameState.combat.rings.forEach(r=>r.draw(ctx));
+            
+            // 天赋1：绘制虚线圆周角
+            if(gameState.player.talentCentralAngle){
+                const {centerX,centerY,radius}=gameState.canvas;
+                gameState.savedGeometries.forEach(geo=>{
+                    const circlePoints=geo.placedPoints.filter(p=>p.type==='circle');
+                    const centerPoints=geo.placedPoints.filter(p=>p.type==='center');
+                    if(circlePoints.length>=2 && centerPoints.length>=1){
+                        const cp=centerPoints[0];
+                        circlePoints.forEach((p1,p1Idx)=>{
+                            const p2=circlePoints[(p1Idx+1)%circlePoints.length];
+                            const angle1=Math.atan2(p1.y-cp.y,p1.x-cp.x);
+                            const angle2=Math.atan2(p2.y-cp.y,p2.x-cp.x);
+                            ctx.beginPath();
+                            ctx.setLineDash([5,5]);
+                            ctx.arc(cp.x,cp.y,30,angle1,angle2);
+                            ctx.strokeStyle='rgba(255,100,100,0.6)';
+                            ctx.lineWidth=2;
+                            ctx.stroke();
+                            ctx.setLineDash([]);
+                        });
+                    }
+                });
+            }
+        }
+
+        function detectTheorems(){
+            const pts=gameState.geometry.placedPoints;
+            const {centerX,centerY,radius}=gameState.canvas;
+            gameState.geometry.activeTheorems=[];
+            
+            const circlePoints=pts.filter(p=>p.type==='circle');
+            const centerPoints=pts.filter(p=>p.type==='center');
+            const outerPoints=pts.filter(p=>p.type==='outer');
+            
+            if(circlePoints.length>=2 && centerPoints.length>=1){
+                gameState.geometry.activeTheorems.push({id:'theorem1'});
+            }
+            
+            if(circlePoints.length>=3){
+                for(let i=0;i<circlePoints.length;i++){
+                    const p1=circlePoints[i];
+                    const p2=circlePoints[(i+1)%circlePoints.length];
+                    const d1=getDistance(p1.x,p1.y,p2.x,p2.y);
+                    if(Math.abs(d1-2*radius)<20){
+                        gameState.geometry.activeTheorems.push({id:'theorem2'});
+                        break;
+                    }
+                }
+            }
+            
+            if(circlePoints.length>=4){
+                gameState.geometry.activeTheorems.push({id:'theorem3'});
+            }
+            
+            if(outerPoints.length>=1 && circlePoints.length>=1){
+                gameState.geometry.activeTheorems.push({id:'theorem4'});
+            }
+            
+            if(outerPoints.length>=1 && circlePoints.length>=2){
+                gameState.geometry.activeTheorems.push({id:'theorem5'});
+            }
+            
+            if(circlePoints.length>=2){
+                gameState.geometry.activeTheorems.push({id:'theorem6'});
+            }
+            
+            if(circlePoints.length>=2){
+                gameState.geometry.activeTheorems.push({id:'theorem7'});
+            }
+            
+            if(centerPoints.length>=1 && circlePoints.length>=2){
+                gameState.geometry.activeTheorems.push({id:'theorem8'});
+            }
+        }
+        
+        function closeShape(){
+            const pts=gameState.geometry.placedPoints;if(pts.length<2)return;
+            gameState.geometry.lines=[];
+            for(let i=0;i<pts.length;i++){const p1=pts[i],p2=pts[(i+1)%pts.length];gameState.geometry.lines.push(new Line(p1.x,p1.y,p2.x,p2.y,'line'))}
+            detectTheorems();
+            gameState.geometry.isClosed=true;
+            
+            // 保存当前几何图形（深拷贝，保留对象方法）
+            const savedGeometry = {
+                placedPoints: gameState.geometry.placedPoints.map(p => new Point(p.x, p.y, p.type)),
+                lines: gameState.geometry.lines.map(l => new Line(l.x1, l.y1, l.x2, l.y2, l.type)),
+                activeTheorems: [...gameState.geometry.activeTheorems],
+                isClosed: gameState.geometry.isClosed
+            };
+            gameState.savedGeometries.push(savedGeometry);
+            
+            sounds.close();updateUI();
+        }
+
+        function spawnMonsters(){
+            const {width,height}=gameState.canvas;const w=gameState.combat.wave;
+            const e=[{x:0,y:Math.random()*height},{x:width,y:Math.random()*height},{x:Math.random()*width,y:0},{x:Math.random()*width,y:height}];
+            for(let i=0;i<5+w*2;i++){const p=e[Math.floor(Math.random()*4)];const isElite=Math.random()<0.1;gameState.combat.monsters.push(new Monster(p.x,p.y,'normal',w,isElite))}
+            gameState.combat.wave++;gameState.combat.lastWaveTime=Date.now();updateUI();
+        }
+
+        function spawnBullets(){
+            const {centerX,centerY,radius}=gameState.canvas;
+            let ringDamage = 5 + (gameState.player.baseDamageBonus || 0);
+            
+            // 天赋2：半圆定理 - 直径产生强力扩散波
+            if(gameState.player.talentSemicircle){
+                gameState.savedGeometries.forEach(geo=>{
+                    const circlePoints=geo.placedPoints.filter(p=>p.type==='circle');
+                    for(let i=0;i<circlePoints.length;i++){
+                        const p1=circlePoints[i];
+                        const p2=circlePoints[(i+1)%circlePoints.length];
+                        const d=getDistance(p1.x,p1.y,p2.x,p2.y);
+                        if(Math.abs(d-2*radius)<20){
+                            // 产生额外的强力扩散波
+                            gameState.combat.rings.push(new Ring(centerX,centerY,10,ringDamage*2));
+                        }
+                    }
+                });
+            }
+            
+            // 天赋1：圆周角定理 - 圆周角触发额外弱冲击波
+            if(gameState.player.talentCentralAngle){
+                gameState.savedGeometries.forEach(geo=>{
+                    const circlePoints=geo.placedPoints.filter(p=>p.type==='circle');
+                    const centerPoints=geo.placedPoints.filter(p=>p.type==='center');
+                    if(circlePoints.length>=2 && centerPoints.length>=1){
+                        const cp = centerPoints[0];
+                        for(let i=0;i<circlePoints.length;i++){
+                            gameState.combat.rings.push(new Ring(cp.x,cp.y,10,ringDamage*0.5));
+                        }
+                    }
+                });
+            }
+            
+            // 天赋3：内接四边形 - 全体怪物受到脉冲伤害
+            if(gameState.player.talentQuadrilateral){
+                gameState.savedGeometries.forEach(geo=>{
+                    const circlePoints=geo.placedPoints.filter(p=>p.type==='circle');
+                    if(circlePoints.length>=4){
+                        gameState.combat.monsters.forEach(m=>m.hit(ringDamage*0.3));
+                    }
+                });
+            }
+            
+            // 天赋4：切线定理 - 切线位置触发追踪弹
+            if(gameState.player.talentTangent){
+                gameState.savedGeometries.forEach(geo=>{
+                    const outerPoints=geo.placedPoints.filter(p=>p.type==='outer');
+                    const circlePoints=geo.placedPoints.filter(p=>p.type==='circle');
+                    outerPoints.forEach(op=>{
+                        const tangents = getTangentPoints(op.x,op.y,centerX,centerY,radius);
+                        tangents.forEach(tp=>{
+                            gameState.combat.rings.push(new Ring(tp.x,tp.y,10,ringDamage*0.5));
+                        });
+                    });
+                });
+            }
+            
+            // 天赋5：双切线定理 - 双切线触发镜像攻击
+            if(gameState.player.talentDualTangent){
+                gameState.savedGeometries.forEach(geo=>{
+                    const outerPoints=geo.placedPoints.filter(p=>p.type==='outer');
+                    if(outerPoints.length>=2){
+                        outerPoints.forEach(op=>{
+                            const tangents = getTangentPoints(op.x,op.y,centerX,centerY,radius);
+                            tangents.forEach(tp=>{
+                                gameState.combat.rings.push(new Ring(tp.x,tp.y,10,ringDamage*0.5));
+                            });
+                        });
+                        // 镜像位置也攻击
+                        const lastOuter = outerPoints[outerPoints.length-1];
+                        const mirrorX = 2*centerX - lastOuter.x;
+                        const mirrorY = 2*centerY - lastOuter.y;
+                        const mirrorTangents = getTangentPoints(mirrorX,mirrorY,centerX,centerY,radius);
+                        mirrorTangents.forEach(tp=>{
+                            gameState.combat.rings.push(new Ring(tp.x,tp.y,10,ringDamage*0.5));
+                        });
+                    }
+                });
+            }
+            
+            // 天赋6：弦心距定理 - 弦中点连线发射穿透光束
+            if(gameState.player.talentChordBeam){
+                gameState.savedGeometries.forEach(geo=>{
+                    const circlePoints=geo.placedPoints.filter(p=>p.type==='circle');
+                    if(circlePoints.length>=2){
+                        for(let i=0;i<circlePoints.length;i++){
+                            const p1=circlePoints[i];
+                            const p2=circlePoints[(i+1)%circlePoints.length];
+                            const midX=(p1.x+p2.x)/2;
+                            const midY=(p1.y+p2.y)/2;
+                            // 从中点向所有怪物发射光束
+                            gameState.combat.monsters.forEach(m=>{
+                                const angle=Math.atan2(m.y-midY,m.x-midX);
+                                const beamDist=getDistance(m.x,m.y,centerX,centerY);
+                                // 在怪物位置产生冲击
+                                gameState.combat.rings.push(new Ring(m.x,m.y,10,ringDamage*0.3));
+                            });
+                        }
+                    }
+                });
+            }
+            
+            // 天赋7：等弦定理 - 链式闪电
+            if(gameState.player.talentChainLightning){
+                gameState.savedGeometries.forEach(geo=>{
+                    const circlePoints=geo.placedPoints.filter(p=>p.type==='circle');
+                    if(circlePoints.length>=2){
+                        // 对每个怪物尝试链式攻击
+                        const targets = [...gameState.combat.monsters];
+                        targets.forEach((m,idx)=>{
+                            if(idx < 3){ // 最多链3次
+                                m.hit(ringDamage*0.4);
+                            }
+                        });
+                    }
+                });
+            }
+            
+            // 天赋8：相交弦定理 - 线段相交时产生爆炸
+            if(gameState.player.talentExplosion){
+                gameState.savedGeometries.forEach(geo=>{
+                    if(geo.lines.length>=2){
+                        // 在几何中心产生爆炸
+                        const pts=geo.placedPoints;
+                        let sumX=0,sumY=0;
+                        pts.forEach(p=>{sumX+=p.x;sumY+=p.y});
+                        const geoCenter={x:sumX/pts.length,y:sumY/pts.length};
+                        gameState.combat.rings.push(new Ring(geoCenter.x,geoCenter.y,10,ringDamage*0.5));
+                        // 对中心范围内的怪物造成伤害
+                        gameState.combat.monsters.forEach(m=>{
+                            if(getDistance(m.x,m.y,geoCenter.x,geoCenter.y)<100){
+                                m.hit(ringDamage*0.5);
+                            }
+                        });
+                    }
+                });
+            }
+            
+            // 对所有怪物造成伤害
+            gameState.combat.monsters.forEach(m=>m.hit(ringDamage));
+            
+            // 收集并处理死亡怪物
+            const deadMonsters = gameState.combat.monsters.filter(m=>m.hp<=0);
+            deadMonsters.forEach(m=>{
+                gameState.combat.score+=m.wave*10;
+                gameState.player.exp+=m.wave*5;
+                sounds.kill();
+            });
+            gameState.combat.monsters=gameState.combat.monsters.filter(m=>m.hp>0);
+            
+            // 检查升级
+            if(deadMonsters.length>0){
+                checkLevelUp();
+            }
+            
+            // 主波纹视觉效果
+            gameState.combat.rings.push(new Ring(centerX,centerY,10,ringDamage));
+            
+            gameState.combat.lastBulletTime=Date.now();
+        }
+
+        function checkLevelUp(){
+            while(gameState.player.exp>=gameState.player.expToNextLevel){
+                gameState.player.exp-=gameState.player.expToNextLevel;
+                gameState.player.level++;
+                gameState.player.expToNextLevel=Math.floor(gameState.player.expToNextLevel*1.5);
+                sounds.level();
+                gameState.status='paused';
+                
+                // 重置模态框为默认的点数选项
+                const modal = document.getElementById('levelUpModal');
+                const titleEl = modal.querySelector('.modal-title');
+                if (titleEl) {
+                    titleEl.textContent = i18n[gameState.settings.language].levelUp || '升级了！';
+                }
+                modal.querySelector('.levelup-options').innerHTML = `
+                    <div class="levelup-option" id="circleOption">
+                        <div class="option-icon" style="background-color: var(--color-circle); border-radius: 50%;"></div>
+                        <span data-i18n="circlePoint">圆周点</span>
+                    </div>
+                    <div class="levelup-option" id="centerOption">
+                        <div class="option-icon" style="background-color: var(--color-center); border-radius: 4px;"></div>
+                        <span data-i18n="centerPoint">圆心点</span>
+                    </div>
+                    <div class="levelup-option" id="outerOption">
+                        <div class="option-icon" style="background-color: var(--color-outer); clip-path: polygon(50% 0%, 0% 100%, 100% 100%);"></div>
+                        <span data-i18n="outerPoint">圆外点</span>
+                    </div>
+                `;
+                // 重新绑定点数选择事件
+                document.getElementById('circleOption').onclick = function() { gameState.player.points.circle++; document.getElementById('levelUpModal').classList.remove('active'); gameState.status = 'playing'; updateUI(); sounds.click(); };
+                document.getElementById('centerOption').onclick = function() { gameState.player.points.center++; document.getElementById('levelUpModal').classList.remove('active'); gameState.status = 'playing'; updateUI(); sounds.click(); };
+                document.getElementById('outerOption').onclick = function() { gameState.player.points.outer++; document.getElementById('levelUpModal').classList.remove('active'); gameState.status = 'playing'; updateUI(); sounds.click(); };
+                
+                // 每5级允许选择天赋
+                if (gameState.player.level % 5 === 0) {
+                    showTalentSelection();
+                } else {
+                    // 普通升级，选择点数
+                    document.getElementById('levelUpModal').classList.add('active');
+                }
+                
+                updateUI();
+            }
+        }
+        
+        // 天赋选择函数
+        function showTalentSelection(isStartTalent = false) {
+            const availableTalents = talentTree.filter(t => 
+                (!gameState.player.selectedTalents || !gameState.player.selectedTalents.some(st => st.id === t.id))
+            );
+            
+            // 更新天赋选择模态框
+            const modal = document.getElementById('levelUpModal');
+            const options = modal.querySelector('.levelup-options');
+            
+            let selected;
+            if (availableTalents.length < 3) {
+                // 如果可用天赋少于3个，显示已解锁的天赋供选择
+                selected = availableTalents.length > 0 ? availableTalents : [];
+            } else {
+                // 随机选择3个天赋
+                const shuffled = availableTalents.sort(() => 0.5 - Math.random());
+                selected = shuffled.slice(0, 3);
+            }
+            
+            // 如果没有可用天赋，回退到点数选择
+            if (selected.length === 0) {
+                document.getElementById('levelUpModal').classList.add('active');
+                return;
+            }
+            
+            // 更新标题显示
+            const titleEl = modal.querySelector('.modal-title');
+            if (titleEl) {
+                titleEl.textContent = isStartTalent ? '选择初始天赋！' : (i18n[gameState.settings.language].levelUp || '升级了！');
+            }
+            
+            options.innerHTML = selected.map(t => `
+                <div class="levelup-option" data-talent-id="${t.id}">
+                    <div class="option-icon" style="background-color: var(--color-line); border-radius: 50%;"></div>
+                    <div>
+                        <strong>${t.name[gameState.settings.language]}</strong>
+                        <p style="font-size: 12px; margin: 5px 0;">${t.desc[gameState.settings.language]}</p>
+                    </div>
+                </div>
+            `).join('');
+            
+            // 添加点击事件
+            options.querySelectorAll('.levelup-option').forEach(option => {
+                option.onclick = function() {
+                    const talentId = this.dataset.talentId;
+                    const talent = talentTree.find(t => t.id === talentId);
+                    
+                    // 应用天赋效果
+                    talent.effect(gameState);
+                    
+                    // 保存已选择的天赋
+                    if (!gameState.player.selectedTalents) {
+                        gameState.player.selectedTalents = [];
+                    }
+                    gameState.player.selectedTalents.push(talent);
+                    
+                    // 关闭模态框
+                    modal.classList.remove('active');
+                    
+                    // 开局天赋选择或升级后继续游戏
+                    gameState.status = 'playing';
+                    
+                    updateUI();
+                    sounds.click();
+                };
+            });
+            
+            // 显示模态框
+            modal.classList.add('active');
+        }
+
+        function gameOver(){
+            gameState.status='gameOver';
+            if(anim){cancelAnimationFrame(anim);anim=null;}
+            try{
+                const currentHigh = parseInt(localStorage.getItem('high') || 0);
+                const newHigh = Math.max(gameState.combat.score, currentHigh);
+                localStorage.setItem('high', newHigh);
+                document.getElementById('finalScoreText').textContent=gameState.combat.score;
+                document.getElementById('finalWaveText').textContent=gameState.combat.wave-1;
+                document.getElementById('highScoreText').textContent=newHigh;
+                document.getElementById('gameOverModal').classList.add('active');
+            }catch(e){console.error('GameOver error:',e)}
+        }
+
+        function gameLoop(){
+            if(gameState.status!=='playing'){anim=requestAnimationFrame(gameLoop);return}
+            const now=Date.now();const {centerX,centerY,radius}=gameState.canvas;
+            if(now-gameState.combat.lastWaveTime>=gameState.combat.waveInterval&&gameState.combat.monsters.length===0)spawnMonsters();
+            if(now-gameState.combat.lastBulletTime>=gameState.combat.bulletInterval)spawnBullets();
+
+            for(let i=gameState.combat.monsters.length-1;i>=0;i--){
+                const m=gameState.combat.monsters[i];m.move();
+                const now=Date.now();
+                if(getDistance(m.x,m.y,centerX,centerY)<=m.r+5){
+                    if(now-gameState.lastHitTime>2000){
+                        gameState.centerHealth--;
+                        gameState.lastHitTime=now;
+                        gameState.combat.monsters.splice(i,1);
+                        sounds.kill();
+                        if(gameState.centerHealth<=0){
+                            gameState.status='gameOver';
+                            gameState.centerHealth=0;
+                            if(anim){cancelAnimationFrame(anim);anim=null;}
+                            updateUI();
+                            const currentHigh = parseInt(localStorage.getItem('high') || 0);
+                            const newHigh = Math.max(gameState.combat.score, currentHigh);
+                            localStorage.setItem('high', newHigh);
+                            document.getElementById('finalScoreText').textContent=gameState.combat.score;
+                            document.getElementById('finalWaveText').textContent=gameState.combat.wave-1;
+                            document.getElementById('highScoreText').textContent=newHigh;
+                            document.getElementById('gameOverModal').classList.add('active');
+                            return;
+                        }
+                    }
+                }
+                let d=0;gameState.geometry.lines.forEach((l,idx)=>{if(isPointOnLine(m.x,m.y,l.x1,l.y1,l.x2,l.y2,m.r)&&m.canTakeLineDamage('geo'+idx,now))d+=10});gameState.savedGeometries.forEach((geometry,gIdx)=>{geometry.lines.forEach((l,lIdx)=>{if(isPointOnLine(m.x,m.y,l.x1,l.y1,l.x2,l.y2,m.r)&&m.canTakeLineDamage('saved'+gIdx+'_'+lIdx,now))d+=10})});
+                if(d&&m.hit(d)){gameState.combat.score+=m.wave*10;gameState.player.exp+=m.wave*5;gameState.combat.monsters.splice(i,1);sounds.kill();checkLevelUp()}
+            }
+
+            for(let i=gameState.combat.rings.length-1;i>=0;i--){
+                const r=gameState.combat.rings[i];
+                if(!r.update()){gameState.combat.rings.splice(i,1)}
+            }
+
+            draw();updateUI();anim=requestAnimationFrame(gameLoop);
+        }
+
+        function initGame(){
+            gameState.status='paused';
+            gameState.isPlacingMode=false;
+            gameState.centerHealth=3;
+            gameState.lastHitTime=0;
+            gameState.savedGeometries=[];
+            gameState.player={level:1,exp:0,expToNextLevel:100,points:{circle:1,center:1,outer:1},selectedTalents:[],baseDamageBonus:0,talentCentralAngle:!1,talentSemicircle:!1,talentQuadrilateral:!1,talentTangent:!1,talentDualTangent:!1,talentChordBeam:!1,talentChainLightning:!1,talentExplosion:!1};
+            gameState.geometry={placedPoints:[],maxPoints:5,lines:[],activeTheorems:[],isClosed:false,selectedPointType:'circle'};
+            gameState.combat={baseDamage:10,monsters:[],rings:[],wave:1,score:0,lastWaveTime:Date.now(),waveInterval:10000,lastBulletTime:0,bulletInterval:1000};
+            tempPoints=null;
+            
+            document.querySelectorAll('.point-btn').forEach(b=>b.classList.remove('active'));
+            document.getElementById('circlePointBtn').classList.add('active');
+
+            updateUI();
+            document.getElementById('startModal').classList.remove('active');
+            document.getElementById('levelUpModal').classList.remove('active');
+            document.getElementById('gameOverModal').classList.remove('active');
+            if(anim)cancelAnimationFrame(anim);gameLoop();
+            
+            // 开局给玩家一次3选1天赋选择
+            setTimeout(()=>{
+                showTalentSelection(true);
+            }, 100);
+        }
+
+        function startGame(){
+            // 直接刷新页面来重新开始游戏
+            location.reload();
+        }
+
+        function togglePause(){gameState.status=gameState.status==='playing'?'paused':'playing';updateUI()}
+
+        function canvasClick(e){
+            if(!gameState.isPlacingMode)return;
+            const pts=gameState.geometry.placedPoints;if(pts.length>=5)return;
+            const type=gameState.geometry.selectedPointType;if(gameState.player.points[type]<=0)return;
+
+            const r=canvas.getBoundingClientRect();const x=e.clientX-r.left,y=e.clientY-r.top;
+            const {centerX,centerY,radius}=gameState.canvas;const d=getDistance(x,y,centerX,centerY);
+            let valid=false,fx=x,fy=y;
+
+            switch(type){
+                case 'center':
+                    if(d<radius-5){fx=centerX;fy=centerY;valid=true}
+                    break;
+                case 'circle':
+                    if(Math.abs(d-radius)<=15){const k=radius/d;fx=centerX+(x-centerX)*k;fy=centerY+(y-centerY)*k;valid=true}
+                    break;
+                case 'outer':
+                    if(d>=radius-5){valid=true}
+                    break;
+            }
+
+            if(valid){
+                gameState.geometry.placedPoints.push(new Point(fx,fy,type));
+                gameState.player.points[type]--;gameState.geometry.isClosed=false;
+                sounds.place();draw();updateUI();
+            }
+        }
+
+        let tempPoints = null;
+        
+        function placeDefense() {
+            if (gameState.isPlacingMode) {
+                // 确认放置
+                if (gameState.geometry.placedPoints.length >= 3) {
+                    closeShape();
+                    gameState.isPlacingMode = false;
+                    gameState.status = 'playing';
+                    tempPoints = null;
+                } else {
+                    // 少于3个点，显示提示
+                    document.getElementById('currentPointsText').textContent = `当前已放置点数：${gameState.geometry.placedPoints.length}，需要至少3个点`;
+                    document.getElementById('placeDefenseModal').classList.add('active');
+                }
+            } else {
+                // 进入放置模式，开始新图形绘制
+                const totalPoints = gameState.player.points.circle + gameState.player.points.center + gameState.player.points.outer;
+                if (totalPoints >= 3) {
+                    // 重置几何图形，开始新的图形制作
+                    gameState.geometry = {
+                        placedPoints: [],
+                        maxPoints: 5,
+                        lines: [],
+                        activeTheorems: [],
+                        isClosed: false,
+                        selectedPointType: 'circle'
+                    };
+                    gameState.isPlacingMode = true;
+                    gameState.status = 'paused';
+                    tempPoints = {
+                        circle: gameState.player.points.circle,
+                        center: gameState.player.points.center,
+                        outer: gameState.player.points.outer
+                    };
+                }
+            }
+            sounds.click();
+            updateUI();
+            draw();
+        }
+        
+        function cancelDefense() {
+            if (tempPoints) {
+                gameState.player.points = { ...tempPoints };
+                // 重置几何图形，准备开始新的绘制
+                gameState.geometry = {
+                    placedPoints: [],
+                    maxPoints: 5,
+                    lines: [],
+                    activeTheorems: [],
+                    isClosed: false,
+                    selectedPointType: 'circle'
+                };
+                tempPoints = null;
+            }
+            gameState.isPlacingMode = false;
+            document.getElementById('placeDefenseModal').classList.remove('active');
+            draw();
+            updateUI();
+            sounds.click();
+        }
+        
+        function continueAdding() {
+            document.getElementById('placeDefenseModal').classList.remove('active');
+            sounds.click();
+        }
+
+        window.addEventListener('load',()=>{loadSettings();document.getElementById('startModal').classList.add('active');draw();updateUI()});
+        canvas.addEventListener('click',canvasClick);
+        canvas.addEventListener('touchend',e=>{e.preventDefault();canvasClick(e.changedTouches[0])});
+
+        document.getElementById('circlePointBtn').onclick=()=>{gameState.geometry.selectedPointType='circle';document.querySelectorAll('.point-btn').forEach(b=>b.classList.remove('active'));document.getElementById('circlePointBtn').classList.add('active');sounds.click()};
+        document.getElementById('centerPointBtn').onclick=()=>{gameState.geometry.selectedPointType='center';document.querySelectorAll('.point-btn').forEach(b=>b.classList.remove('active'));document.getElementById('centerPointBtn').classList.add('active');sounds.click()};
+        document.getElementById('outerPointBtn').onclick=()=>{gameState.geometry.selectedPointType='outer';document.querySelectorAll('.point-btn').forEach(b=>b.classList.remove('active'));document.getElementById('outerPointBtn').classList.add('active');sounds.click()};
+
+        document.getElementById('confirmStartBtn').onclick=()=>{initGame();sounds.click()};
+        document.getElementById('startBtn').onclick=()=>{startGame();sounds.click()};
+        document.getElementById('pauseBtn').onclick=()=>{togglePause();sounds.click()};
+        document.getElementById('placeDefenseBtn').onclick=()=>{placeDefense()};
+        document.getElementById('restartBtn').onclick=()=>{startGame();sounds.click()};
+        document.getElementById('closeSettingBtn').onclick=()=>{saveSettings();applySettings();document.getElementById('settingModal').classList.remove('active');sounds.click()};
+        document.getElementById('cancelDefenseBtn').onclick=()=>{cancelDefense()};
+        document.getElementById('continueAddBtn').onclick=()=>{continueAdding()};
+
+        document.getElementById('circleOption').onclick=()=>{gameState.player.points.circle++;document.getElementById('levelUpModal').classList.remove('active');gameState.status='playing';updateUI();sounds.click()};
+        document.getElementById('centerOption').onclick=()=>{gameState.player.points.center++;document.getElementById('levelUpModal').classList.remove('active');gameState.status='playing';updateUI();sounds.click()};
+        document.getElementById('outerOption').onclick=()=>{gameState.player.points.outer++;document.getElementById('levelUpModal').classList.remove('active');gameState.status='playing';updateUI();sounds.click()};
+
+        document.getElementById('darkModeSwitch').onclick=function(){this.classList.toggle('active');gameState.settings.darkMode=this.classList.contains('active');applySettings()};
+        document.getElementById('sfxSwitch').onclick=function(){this.classList.toggle('active');gameState.settings.sfx=this.classList.contains('active')};
+        document.getElementById('languageSelect').onchange=function(){gameState.settings.language=this.value;applyLanguage()};
+        document.getElementById('fontSizeSelect').onchange=function(){gameState.settings.fontSize=this.value;document.documentElement.setAttribute('data-font',this.value)};
+        
+        function updateSettingButtons(){
+            document.getElementById('sfxBtn').classList.toggle('active',gameState.settings.sfx);
+            document.getElementById('sfxIcon').textContent=gameState.settings.sfx?'🔊':'🔇';
+        }
+        
+        document.getElementById('sfxBtn').onclick=function(){gameState.settings.sfx=!gameState.settings.sfx;updateSettingButtons();};
+    </script>
+</body>
+</html>
