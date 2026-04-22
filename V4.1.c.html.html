@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Circle Theorems Quiz</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        :root {
+            --bg: linear-gradient(135deg, #f0f4ff, #d9e2ff);
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --option-bg: #f8fafc;
+            --option-border: #e2e2f0;
+            --progress-bg: #e2e8f0;
+            --progress-fill: #2563eb;
+            --feedback-correct-bg: #ecfdf5;
+            --feedback-correct-text: #065f46;
+            --feedback-wrong-bg: #fef2f2;
+            --feedback-wrong-text: #991b1b;
+            --result-bg: #eff6ff;
+            --explanation-bg: #f8fafc;
+            --explanation-text: #334155;
+            --breadcrumb-bg: #f1f5f9;
+            --breadcrumb-text: #475569;
+            --timer-bg: #fff1f2;
+            --timer-color: #e11d48;
+        }
+
+        .dark-mode {
+            --bg: #1e2933;
+            --card-bg: #334155;
+            --text: #f1f5f9;
+            --option-bg: #475569;
+            --option-border: #64748b;
+            --progress-bg: #475569;
+            --progress-fill: #3b82f6;
+            --feedback-correct-bg: #064e3b;
+            --feedback-correct-text: #ffffff;
+            --feedback-wrong-bg: #7f1d1d;
+            --feedback-wrong-text: #ffffff;
+            --result-bg: #1e3a8a;
+            --explanation-bg: #475569;
+            --explanation-text: #e2e8f0;
+            --breadcrumb-bg: #334155;
+            --breadcrumb-text: #e2e8f0;
+            --timer-bg: #4c1d1d;
+            --timer-color: #fca5a5;
+        }
+
+        body {
+            background: var(--bg);
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .breadcrumb {
+            background: var(--breadcrumb-bg);
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-size: 15px;
+            color: var(--breadcrumb-text);
+            margin: 0 auto 20px;
+            text-align: center;
+            width: fit-content;
+        }
+
+        .breadcrumb span {
+            margin: 0 6px;
+            color: #94a3b8;
+        }
+
+        .breadcrumb .current {
+            color: #2563eb;
+            font-weight: 600;
+        }
+
+        .top-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .home-icon {
+            font-size: 20px;
+            background: #2563eb;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #1d4ed8;
+            position: relative;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .lang-btn, .dark-btn {
+            padding: 6px 12px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .timer {
+            background: var(--timer-bg);
+            color: var(--timer-color);
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 16px;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .level-select {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .level-btn {
+            padding: 14px 24px;
+            margin: 8px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .quiz-card {
+            background: var(--card-bg);
+            padding: 35px;
+            border-radius: 18px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+            display: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress {
+            font-size: 15px;
+            color: var(--text);
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: var(--progress-bg);
+            border-radius: 4px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--progress-fill);
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        .question {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 24px;
+            color: var(--text);
+            line-height: 1.5;
+            text-align: center;
+        }
+
+        .option {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            background: var(--option-bg);
+            border: 2px solid var(--option-border);
+            border-radius: 10px;
+            font-size: 16px;
+            text-align: left;
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .option:hover {
+            border-color: #3b82f6;
+            background: #eff6ff;
+            transform: scale(1.02);
+        }
+
+        .option:disabled {
+            cursor: not-allowed;
+        }
+
+        .correct {
+            background: #10b981 !important;
+            color: white !important;
+            border-color: #059669 !important;
+            animation: correctPulse 0.6s ease-in-out;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+        }
+
+        .wrong {
+            background: #ef4444 !important;
+            color: white !important;
+            border-color: #dc2626 !important;
+            animation: wrongShake 0.5s ease-in-out;
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
+        }
+
+        @keyframes correctPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes wrongShake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-6px); }
+            50% { transform: translateX(6px); }
+            75% { transform: translateX(-6px); }
+            100% { transform: translateX(0); }
+        }
+
+        .feedback {
+            margin: 20px 0;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 500;
+            display: none;
+            text-align: center;
+            font-size: 18px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .explanation {
+            background: var(--explanation-bg);
+            color: var(--explanation-text);
+            padding: 14px;
+            border-radius: 10px;
+            margin: 12px 0;
+            line-height: 1.6;
+            font-size: 15px;
+            display: none;
+            text-align: center;
+        }
+
+        .next-btn {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 14px 24px;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            display: none;
+            margin: 10px auto;
+            transition: transform 0.2s;
+        }
+
+        .next-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .result {
+            text-align: center;
+            font-size: 22px;
+            font-weight: bold;
+            color: var(--text);
+            margin-top: 20px;
+            padding: 20px;
+            background: var(--result-bg);
+            border-radius: 12px;
+            display: none;
+        }
+
+        .weak-summary {
+            background: #fff8e1;
+            color: #5c3a00;
+            padding: 18px;
+            border-radius: 12px;
+            margin: 16px 0;
+            text-align: left;
+            line-height: 1.6;
+            font-size: 15px;
+            border-left: 6px solid #ff9800;
+        }
+
+        .dark-mode .weak-summary {
+            background: #4a3f26;
+            color: #ffd54f;
+            border-left-color: #ffb300;
+        }
+
+        .restart-btn, .back-btn {
+            margin-top: 15px;
+            padding: 12px 20px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+
+        .back-home {
+            background: #64748b;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .rank-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .rank-box {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .rank-item {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .rank-no {
+            font-weight: bold;
+            color: #2563eb;
+            width: 40px;
+        }
+
+        .rank-name {
+            flex: 1;
+            padding: 0 10px;
+        }
+
+        .rank-score {
+            font-weight: bold;
+            color: #10b981;
+        }
+    </style>
+</head>
+<body>
+
+<div class="breadcrumb" id="breadcrumb">
+    <span>Home</span> <span>&gt;</span>
+    <span id="crumbPage">Circle Theorems Quiz</span>
+</div>
+
+<div class="container">
+    <div class="top-nav">
+        <a class="home-icon" href="javascript:goHome()">⌂</a>
+        <div class="header-buttons">
+            <button class="dark-btn" id="darkBtn">Dark</button>
+            <button class="lang-btn" id="langBtn">中文</button>
+        </div>
+    </div>
+
+    <div class="header">
+        <h1 id="title">Circle Theorems Quiz</h1>
+        <button class="level-btn" onclick="showRanking()">🏆 Ranking</button>
+    </div>
+
+    <div class="timer" id="timer"></div>
+
+    <div class="level-select" id="levelSelect">
+        <button class="level-btn" onclick="startLevel('basic')">Basic 基础</button>
+        <button class="level-btn" onclick="startLevel('intermediate')">Intermediate 进阶</button>
+        <button class="level-btn" onclick="startLevel('advanced')">Advanced 挑战</button>
+    </div>
+
+    <div class="quiz-card" id="quizCard">
+        <div class="progress" id="progress"></div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="question" id="question"></div>
+        <div id="options"></div>
+        <div class="feedback" id="feedback"></div>
+        <div class="explanation" id="explanation"></div>
+        <button class="next-btn" id="nextBtn">Next</button>
+        <div class="result" id="result"></div>
+        <div style="margin-top:20px; text-align:center;">
+            <button class="back-btn back-home" onclick="backToLevels()">Back to Levels</button>
+        </div>
+    </div>
+</div>
+
+<div class="rank-modal" id="rankModal">
+    <div class="rank-box">
+        <h2>🏆 Leaderboard</h2>
+        <div id="rankList"></div>
+        <br>
+        <button class="level-btn" onclick="closeRanking()">Close</button>
+        <button class="level-btn" style="background:#ef4444" onclick="resetRanking()">🗑️ Reset Ranking</button>
+    </div>
+</div>
+
+<script>
+// 音效
+function playCorrect() {
+  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  const oscillator = audioContext.createOscillator();
+  const gainNode = audioContext.createGain();
+  oscillator.type = "sine";
+  oscillator.frequency.setValueAtTime(587.33, audioContext.currentTime);
+  oscillator.frequency.setValueAtTime(880, audioContext.currentTime + 0.1);
+  gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+  oscillator.connect(gainNode); gainNode.connect(audioContext.destination);
+  oscillator.start(); setTimeout(() => oscillator.stop(), 300);
+}
+function playWrong() {
+  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  const oscillator = audioContext.createOscillator();
+  const gainNode = audioContext.createGain();
+  oscillator.type = "triangle";
+  oscillator.frequency.setValueAtTime(220, audioContext.currentTime);
+  gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+  oscillator.connect(gainNode); gainNode.connect(audioContext.destination);
+  oscillator.start(); setTimeout(() => oscillator.stop(), 250);
+}
+
+// 排行榜
+function saveScore(name, score) {
+    let list = JSON.parse(localStorage.getItem('quizRanking')||'[]');
+    list.push({name,score,time:new Date().toLocaleString()});
+    list.sort((a,b)=>b.score-a.score);
+    if(list.length>20)list=list.slice(0,20);
+    localStorage.setItem('quizRanking',JSON.stringify(list));
+}
+function getRanking(){return JSON.parse(localStorage.getItem('quizRanking')||'[]');}
+function showRanking(){
+    const list=getRanking();
+    document.getElementById('rankList').innerHTML=list.map((i,k)=>`
+    <div class="rank-item"><div class="rank-no">${k+1}</div><div class="rank-name">${i.name}</div><div class="rank-score">${i.score} pts</div></div>`).join('');
+    document.getElementById('rankModal').style.display='flex';
+}
+function closeRanking(){document.getElementById('rankModal').style.display='none';}
+function resetRanking(){if(confirm("⚠️ Clear all rankings?")){localStorage.removeItem('quizRanking');showRanking();alert("✅ Cleared!");}}
+
+// 语言包
+const lang = {
+    en:{
+        title:"Circle Theorems Quiz",crumb:"Circle Theorems Quiz",basic:"Basic",intermediate:"Intermediate",advanced:"Advanced",
+        question:"Q",correct:"✅ Correct!",wrong:"❌ Wrong!",timeUp:"⏰ Time's Up!",next:"Next",finished:"🎉 Finished!",
+        score:"Score",restart:"Restart",home:"Back Home",enterName:"Enter your name:",weakTitle:"📊 Weak Points",
+        weakDesc:"Please review these knowledge points:",noWeak:"🎉 Perfect! No mistakes!",ranking:"🏆 Ranking"
+    },
+    cn:{
+        title:"圆定理测验",crumb:"圆定理测验",basic:"基础",intermediate:"进阶",advanced:"挑战",
+        question:"第",correct:"✅ 回答正确！",wrong:"❌ 回答错误！",timeUp:"⏰ 时间到！",next:"下一题",finished:"🎉 完成！",
+        score:"得分",restart:"重新开始",home:"返回主页",enterName:"请输入你的名字：",weakTitle:"📊 薄弱知识点",
+        weakDesc:"建议加强学习：",noWeak:"🎉 全对！没有薄弱点！",ranking:"🏆 排行榜"
+    }
+};
+
+// 题目
+const questions={
+    basic:[
+        {en:"The angle at the center is twice the angle at the circumference.",cn:"圆心角是圆周角的两倍。",options:{en:["True","False"],cn:["对","错"]},answer:0,expEn:"Center angle = 2×circumferential angle",expCn:"圆心角=2×圆周角"},
+        {en:"Angles in the same segment are equal.",cn:"同弧上的圆周角相等。",options:{en:["True","False"],cn:["对","错"]},answer:0,expEn:"Angles in same segment are equal",expCn:"同弧圆周角相等"},
+        {en:"The angle in a semicircle is 90 degrees.",cn:"半圆内的角是直角。",options:{en:["True","False"],cn:["对","错"]},answer:0,expEn:"Angle in semicircle = 90°",expCn:"半圆内的角=90°"},
+        {en:"Radius is a diameter.",cn:"半径就是直径。",options:{en:["True","False"],cn:["对","错"]},answer:1,expEn:"Diameter = 2×radius",expCn:"直径=2×半径"},
+        {en:"A circle has infinite lines of symmetry.",cn:"圆有无数条对称轴。",options:{en:["True","False"],cn:["对","错"]},answer:0,expEn:"Circle is symmetric across any diameter",expCn:"圆沿任意直径对称"},
+        {en:"Diameter is the longest chord.",cn:"直径是圆中最长的弦。",options:{en:["True","False"],cn:["对","错"]},answer:0,expEn:"Diameter is the longest chord",expCn:"直径是最长的弦"}
+    ],
+    intermediate:[
+        {en:"Opposite angles in cyclic quadrilateral sum to 180°.",cn:"圆内接四边形对角和180°。",options:{en:["True","False"],cn:["对","错"]},answer:0,expEn:"Sum = 180°",expCn:"和为180°"},
+        {en:"Tangent ⊥ radius.",cn:"切线垂直半径。",options:{en:["True","False"],cn:["对","错"]},answer:0,expEn:"Tangent ⊥ radius at contact",expCn:"切线⊥半径"},
+        {en:"Two radii form isosceles triangle.",cn:"两条半径成等腰三角形。",options:{en:["True","False"],cn:["对","错"]},answer:0,expEn:"Radii equal → isosceles",expCn:"半径相等→等腰三角形"},
+        {en:"Equal distance → equal chords.",cn:"等距→等弦。",options:{en:["True","False"],cn:["对","错"]},answer:0,expEn:"Chords same distance are equal",expCn:"等距弦等长"},
+        {en:"Tangent-chord angle = 180°.",cn:"切线弦夹角=180°。",options:{en:["True","False"],cn:["对","错"]},answer:1,expEn:"It equals alternate segment angle",expCn:"等于弦切角"},
+        {en:"Cyclic quadrilateral vertices on circle.",cn:"圆内接四边形顶点在圆上。",options:{en:["True","False"],cn:["对","错"]},answer:0,expEn:"All vertices on circumference",expCn:"顶点都在圆周上"}
+    ],
+    advanced:[
+        {en:"Alternate segment theorem is valid.",cn:"弦切角定理成立。",options:{en:["True","False"],cn:["对","错"]},answer:0,expEn:"Alternate segment theorem",expCn:"弦切角定理"},
+        {en:"Two tangents from one point are equal.",cn:"同一点引两切线等长。",options:{en:["True","False"],cn:["对","错"]},answer:0,expEn:"Tangents from one point are equal",expCn:"切线等长"},
+        {en:"Center perpendicular bisects chord.",cn:"圆心垂线平分弦。",options:{en:["True","False"],cn:["对","错"]},answer:0,expEn:"Perpendicular from center bisects chord",expCn:"圆心垂线平分弦"},
+        {en:"Major arc = minor arc.",cn:"优弧=劣弧。",options:{en:["True","False"],cn:["对","错"]},answer:1,expEn:"Major arc > minor arc",expCn:"优弧>劣弧"},
+        {en:"Equal chords → equal arcs.",cn:"等弦对等弧。",options:{en:["True","False"],cn:["对","错"]},answer:0,expEn:"Equal chords subtend equal arcs",expCn:"等弦对等弧"},
+        {en:"Tangent angle + central angle = 180°.",cn:"切线角+圆心角=180°。",options:{en:["True","False"],cn:["对","错"]},answer:0,expEn:"Sum = 180°",expCn:"和为180°"}
+    ]
+};
+
+let currentLang="en";
+let currentLevel=null;
+let currentQ=0;
+let score=0;
+let answered=false;
+let wrongQuestions=[];
+let timerInterval;
+let timeLeft=60;
+
+const elements={
+    title:document.getElementById("title"),crumb:document.getElementById("crumbPage"),
+    timer:document.getElementById("timer"),levelSelect:document.getElementById("levelSelect"),
+    quizCard:document.getElementById("quizCard"),progress:document.getElementById("progress"),
+    progressFill:document.getElementById("progressFill"),question:document.getElementById("question"),
+    options:document.getElementById("options"),feedback:document.getElementById("feedback"),
+    explanation:document.getElementById("explanation"),nextBtn:document.getElementById("nextBtn"),
+    result:document.getElementById("result"),langBtn:document.getElementById("langBtn"),
+    darkBtn:document.getElementById("darkBtn")
+};
+
+// 语言切换
+function toggleLanguage(){
+    currentLang=currentLang==="en"?"cn":"en";
+    elements.langBtn.innerText=currentLang==="en"?"中文":"English";
+    elements.title.innerText=lang[currentLang].title;
+    elements.crumb.innerText=lang[currentLang].crumb;
+    const btns=document.querySelectorAll(".level-select .level-btn");
+    btns[0].innerText=lang[currentLang].basic;
+    btns[1].innerText=lang[currentLang].intermediate;
+    btns[2].innerText=lang[currentLang].advanced;
+    document.querySelector(".header .level-btn").innerText=lang[currentLang].ranking;
+    document.querySelector(".back-home").innerText=lang[currentLang].home;
+    elements.nextBtn.innerText=lang[currentLang].next;
+}
+
+// 重置状态
+function resetAllStates(){
+    wrongQuestions=[];score=0;currentQ=0;answered=false;
+    elements.result.innerHTML="";elements.result.style.display="none";
+    elements.progressFill.style.width="0%";
+}
+
+// 计时器
+function startTimer(){
+    clearInterval(timerInterval);timeLeft=60;
+    elements.timer.style.display="block";
+    elements.timer.innerText=`Time: ${timeLeft}s`;
+    timerInterval=setInterval(()=>{
+        timeLeft--;elements.timer.innerText=`Time: ${timeLeft}s`;
+        if(timeLeft<=0){clearInterval(timerInterval);timeOut();}
+    },1000);
+}
+function timeOut(){
+    if(answered)return;answered=true;
+    const all=document.querySelectorAll(".option");
+    all.forEach(b=>b.disabled=true);
+    const q=questions[currentLevel][currentQ];
+    const correct=q.answer;
+    all[correct].classList.add("correct");
+    wrongQuestions.push(q);
+    playWrong();
+    elements.feedback.innerText=lang[currentLang].timeUp+" "+lang[currentLang].wrong;
+    elements.feedback.style.background="var(--feedback-wrong-bg)";
+    elements.feedback.style.display="block";
+    elements.explanation.innerText=currentLang==="en"?q.expEn:q.expCn;
+    elements.explanation.style.display="block";
+    elements.nextBtn.style.display="block";
+}
+
+// 开始答题
+function startLevel(level){
+    resetAllStates();
+    currentLevel=level;
+    elements.levelSelect.style.display="none";
+    elements.quizCard.style.display="block";
+    loadQuestion();
+}
+
+// 加载题目 + 进度条
+function loadQuestion(){
+    const qList=questions[currentLevel];
+    const total=qList.length;
+    const percent=(currentQ/total)*100;
+    elements.progressFill.style.width=percent+"%";
+    if(currentQ>=total){showResult();return;}
+    const q=qList[currentQ];
+    elements.progress.innerText=`${lang[currentLang].question} ${currentQ+1}/${total}`;
+    elements.question.innerText=q[currentLang];
+    elements.options.innerHTML="";
+    elements.feedback.style.display="none";
+    elements.explanation.style.display="none";
+    elements.nextBtn.style.display="none";
+    answered=false;
+    q.options[currentLang].forEach((t,i)=>{
+        let b=document.createElement("button");
+        b.className="option";b.innerText=t;b.onclick=()=>select(i);
+        elements.options.appendChild(b);
+    });
+    startTimer();
+}
+
+// 选择答案
+function select(i){
+    if(answered)return;
+    clearInterval(timerInterval);answered=true;
+    const all=document.querySelectorAll(".option");
+    all.forEach(x=>x.disabled=true);
+    const q=questions[currentLevel][currentQ];
+    const c=q.answer;
+    if(i===c){
+        all[i].classList.add("correct");playCorrect();
+        elements.feedback.innerText=lang[currentLang].correct;
+        elements.feedback.style.background="var(--feedback-correct-bg)";
+        score++;
+    }else{
+        all[i].classList.add("wrong");all[c].classList.add("correct");
+        wrongQuestions.push(q);playWrong();
+        elements.feedback.innerText=lang[currentLang].wrong;
+        elements.feedback.style.background="var(--feedback-wrong-bg)";
+    }
+    elements.feedback.style.display="block";
+    elements.explanation.innerText=currentLang==="en"?q.expEn:q.expCn;
+    elements.explanation.style.display="block";
+    elements.nextBtn.style.display="block";
+}
+
+elements.nextBtn.onclick=()=>{currentQ++;loadQuestion();};
+
+// 显示结果 + 薄弱点
+function showResult(){
+    clearInterval(timerInterval);
+    elements.timer.style.display="none";
+    const total=questions[currentLevel].length;
+    elements.progressFill.style.width="100%";
+    const name=prompt(lang[currentLang].enterName,"Player");
+    if(name)saveScore(name,score);
+    let weakHtml="";
+    if(wrongQuestions.length===0){
+        weakHtml=`<div class="weak-summary"><strong>${lang[currentLang].noWeak}</strong></div>`;
+    }else{
+        weakHtml=`<div class="weak-summary"><strong>${lang[currentLang].weakTitle}</strong><br>${lang[currentLang].weakDesc}<br><br>${wrongQuestions.map((q,idx)=>`${idx+1}. ${q[currentLang]}<br>✅ ${currentLang==="en"?q.expEn:q.expCn}<br><br>`).join('')}</div>`;
+    }
+    elements.result.innerHTML=`${lang[currentLang].finished}<br>${lang[currentLang].score}: ${score}/${total}<br><br>${weakHtml}<button class="restart-btn" onclick="startLevel('${currentLevel}')">${lang[currentLang].restart}</button>`;
+    elements.result.style.display="block";
+}
+
+// 返回主页
+function backToLevels(){
+    clearInterval(timerInterval);resetAllStates();
+    elements.quizCard.style.display="none";
+    elements.levelSelect.style.display="block";
+}
+function goHome(){backToLevels();}
+
+// 深色模式
+document.getElementById("darkBtn").onclick=()=>{
+    document.body.classList.toggle("dark-mode");
+    elements.darkBtn.innerText=document.body.classList.contains("dark-mode")?"Light":"Dark";
+};
+document.getElementById("langBtn").onclick=toggleLanguage;
+</script>
+</body>
+</html>
